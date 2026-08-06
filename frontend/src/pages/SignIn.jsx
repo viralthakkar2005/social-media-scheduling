@@ -1,14 +1,49 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { FcGoogle } from 'react-icons/fc';
-import { ArrowRight, Mail, Lock, CheckCircle2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ArrowRight, Mail, Lock } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { signInSchema } from '../validation/authSchema.js';
 
 export default function SignIn({ onNavigate }) {
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(signInSchema),
+    mode: 'onBlur',
+  });
+
+  const navigate = useNavigate();
+  const [apiError, setApiError] = useState('');
+
+  const onSubmit = async (data) => {
+    setApiError('');
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.message || 'Something went wrong');
+      }
+
+      localStorage.setItem('token', result.token);
+      localStorage.setItem('user', JSON.stringify(result.user));
+
+      navigate('/'); // change to whatever your protected route is
+    } catch (err) {
+      setApiError(err.message);
+    }
   };
 
-    return (
+  return (
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       {/* Top Branding Logo */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
@@ -61,7 +96,8 @@ export default function SignIn({ onNavigate }) {
           </div>
 
           {/* Sign In Form */}
-          <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
+          <form className="mt-6 space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-xs font-bold text-navy uppercase tracking-wider mb-2">
                 Email address
@@ -72,16 +108,24 @@ export default function SignIn({ onNavigate }) {
                 </div>
                 <input
                   id="email"
-                  name="email"
                   type="email"
                   autoComplete="email"
-                  required
                   placeholder="name@company.com"
-                  className="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-post-green focus:ring-1 focus:ring-post-green transition-all"
+                  {...register('email')}
+                  aria-invalid={errors.email ? 'true' : 'false'}
+                  className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${
+                    errors.email
+                      ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
+                      : 'border-gray-200 focus:border-post-green focus:ring-post-green'
+                  }`}
                 />
               </div>
+              {errors.email && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.email.message}</p>
+              )}
             </div>
 
+            {/* Password */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label htmlFor="password" className="block text-xs font-bold text-navy uppercase tracking-wider">
@@ -97,22 +141,29 @@ export default function SignIn({ onNavigate }) {
                 </div>
                 <input
                   id="password"
-                  name="password"
                   type="password"
                   autoComplete="current-password"
-                  required
                   placeholder="••••••••"
-                  className="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-post-green focus:ring-1 focus:ring-post-green transition-all"
+                  {...register('password')}
+                  aria-invalid={errors.password ? 'true' : 'false'}
+                  className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${
+                    errors.password
+                      ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
+                      : 'border-gray-200 focus:border-post-green focus:ring-post-green'
+                  }`}
                 />
               </div>
+              {errors.password && (
+                <p className="mt-1.5 text-xs text-red-500">{errors.password.message}</p>
+              )}
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
                   id="remember-me"
-                  name="remember-me"
                   type="checkbox"
+                  {...register('rememberMe')}
                   className="h-4 w-4 text-post-green focus:ring-post-green border-gray-300 rounded accent-[#5bc983]"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-600">
@@ -124,15 +175,16 @@ export default function SignIn({ onNavigate }) {
             <div>
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-white bg-post-green rounded-full shadow-sm hover:shadow-md transition-all group cursor-pointer"
+                disabled={isSubmitting}
+                className="w-full flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-white bg-post-green rounded-full shadow-sm hover:shadow-md transition-all group cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Sign in to Dashboard
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                {isSubmitting ? 'Signing in...' : 'Sign in to Dashboard'}
+                {!isSubmitting && (
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                )}
               </button>
             </div>
           </form>
-
-          
         </div>
 
         {/* Footer switch prompt */}
