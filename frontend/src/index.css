@@ -1,1 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
+
+body {
+  font-family: 'Hanken Grotesk', sans-serif;
+  color: #334155;
+}
+
+.text-navy {
+  color: #2b3a4a;
+}
+
+.bg-post-green {
+  background-color: #5bc983;
+}
+
+.bg-post-green:hover {
+  background-color: #4eb573;
+}
+
+.text-post-green {
+  color: #5bc983;
+}
+
+.border-post-green {
+  border-color: #5bc983;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0px); }
+}
+
+.float-icon {
+  animation: float 4s ease-in-out infinite;
+}
+
+.float-icon:nth-child(even) {
+  animation-delay: 2s;
+}

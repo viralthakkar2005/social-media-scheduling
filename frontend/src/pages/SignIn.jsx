@@ -1,0 +1,151 @@
+import React from 'react';
+import { FcGoogle } from 'react-icons/fc';
+import { ArrowRight, Mail, Lock, CheckCircle2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+export default function SignIn({ onNavigate }) {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+  };
+
+    return (
+    <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      {/* Top Branding Logo */}
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
+        <a
+          href="#"
+          onClick={(e) => {
+            if (onNavigate) {
+              e.preventDefault();
+              onNavigate('home');
+            }
+          }}
+          className="inline-flex items-center gap-2"
+        >
+          <img
+            src="src/assets/logo.png"
+            alt="Post Bridge Logo"
+            className="h-9 w-auto"
+          />
+          <span className="font-bold text-2xl text-navy tracking-tight">post bridge</span>
+        </a>
+        <h2 className="mt-6 text-3xl md:text-4xl font-extrabold text-navy tracking-tight">
+          Welcome back
+        </h2>
+        <p className="mt-2 text-sm text-gray-500">
+          Sign in to manage and schedule your social media posts
+        </p>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow-sm border border-gray-100 sm:rounded-2xl sm:px-10">
+          {/* Google Login Button */}
+          <div>
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-full text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-post-green cursor-pointer"
+            >
+              <FcGoogle className="w-5 h-5" />
+              <span>Continue with Google</span>
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="mt-6 relative">
+            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+              <div className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase tracking-wider">
+              <span className="bg-white px-3 text-gray-400 font-medium">Or sign in with email</span>
+            </div>
+          </div>
+
+          {/* Sign In Form */}
+          <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
+            <div>
+              <label htmlFor="email" className="block text-xs font-bold text-navy uppercase tracking-wider mb-2">
+                Email address
+              </label>
+              <div className="relative rounded-xl shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                  <Mail className="h-5 w-5" />
+                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  placeholder="name@company.com"
+                  className="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-post-green focus:ring-1 focus:ring-post-green transition-all"
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="password" className="block text-xs font-bold text-navy uppercase tracking-wider">
+                  Password
+                </label>
+                <a href="#" className="text-xs font-medium text-post-green hover:underline">
+                  Forgot password?
+                </a>
+              </div>
+              <div className="relative rounded-xl shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                  <Lock className="h-5 w-5" />
+                </div>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  placeholder="••••••••"
+                  className="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-post-green focus:ring-1 focus:ring-post-green transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 text-post-green focus:ring-post-green border-gray-300 rounded accent-[#5bc983]"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-600">
+                  Remember me
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                className="w-full flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-white bg-post-green rounded-full shadow-sm hover:shadow-md transition-all group cursor-pointer"
+              >
+                Sign in to Dashboard
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </form>
+
+          
+        </div>
+
+        {/* Footer switch prompt */}
+        <p className="mt-6 text-center text-sm text-gray-500">
+          Don't have an account?{' '}
+          <Link
+            to='/sign-up'
+            className="font-semibold text-navy hover:text-post-green transition-colors"
+          >
+            Start for free
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
