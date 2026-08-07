@@ -26,9 +26,17 @@ exports.signUp = async (req, res) => {
   const user = await User.create({ fullName, email, password: hashedPassword });
 
   const token = generateToken(user._id);
+
+  res.cookie('token', token, {
+    httpOnly: true,          // JS can't read it — blocks XSS token theft
+    secure: process.env.NODE_ENV === 'production', // true = HTTPS only
+    sameSite: 'lax',         // 'none' + secure:true if frontend/backend on different domains in prod
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days, match JWT_EXPIRES_IN
+  });
+
   res.status(201).json({
-    token,
     user: { id: user._id, fullName: user.fullName, email: user.email },
+    // no token in body anymore — it's in the cookie
   });
 };
 
@@ -52,8 +60,21 @@ exports.signIn = async (req, res) => {
   }
 
   const token = generateToken(user._id);
-  res.status(200).json({
-    token,
-    user: { id: user._id, fullName: user.fullName, email: user.email },
+
+  res.cookie('token', token, {
+    httpOnly: true,          // JS can't read it — blocks XSS token theft
+    secure: process.env.NODE_ENV === 'production', // true = HTTPS only
+    sameSite: 'lax',         // 'none' + secure:true if frontend/backend on different domains in prod
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days, match JWT_EXPIRES_IN
   });
+
+  res.status(201).json({
+    user: { id: user._id, fullName: user.fullName, email: user.email },
+    // no token in body anymore — it's in the cookie
+  });
+};
+
+exports.logout = (req, res) => {
+  res.clearCookie('token');
+  res.status(200).json({ message: 'Logged out' });
 };

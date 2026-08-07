@@ -6,7 +6,7 @@ import { ArrowRight, Mail, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInSchema } from '../validation/authSchema.js';
 
-export default function SignIn({ onNavigate }) {
+export default function SignIn() {
   const {
     register,
     handleSubmit,
@@ -22,9 +22,11 @@ export default function SignIn({ onNavigate }) {
   const onSubmit = async (data) => {
     setApiError('');
     try {
+
       const res = await fetch('http://localhost:5000/api/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // tells browser to send/accept cookies cross-origin
         body: JSON.stringify(data),
       });
 
@@ -34,8 +36,7 @@ export default function SignIn({ onNavigate }) {
         throw new Error(result.message || 'Something went wrong');
       }
 
-      localStorage.setItem('token', result.token);
-      localStorage.setItem('user', JSON.stringify(result.user));
+
 
       navigate('/'); // change to whatever your protected route is
     } catch (err) {
@@ -113,11 +114,10 @@ export default function SignIn({ onNavigate }) {
                   placeholder="name@company.com"
                   {...register('email')}
                   aria-invalid={errors.email ? 'true' : 'false'}
-                  className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${
-                    errors.email
+                  className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${errors.email
                       ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
                       : 'border-gray-200 focus:border-post-green focus:ring-post-green'
-                  }`}
+                    }`}
                 />
               </div>
               {errors.email && (
@@ -146,11 +146,10 @@ export default function SignIn({ onNavigate }) {
                   placeholder="••••••••"
                   {...register('password')}
                   aria-invalid={errors.password ? 'true' : 'false'}
-                  className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${
-                    errors.password
+                  className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${errors.password
                       ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
                       : 'border-gray-200 focus:border-post-green focus:ring-post-green'
-                  }`}
+                    }`}
                 />
               </div>
               {errors.password && (
@@ -185,6 +184,11 @@ export default function SignIn({ onNavigate }) {
               </button>
             </div>
           </form>
+          {apiError && (
+  <div className="mt-4 rounded-lg bg-red-50 border border-red-200 px-4 py-2.5 text-sm text-red-600">
+    {apiError}
+  </div>
+)}
         </div>
 
         {/* Footer switch prompt */}

@@ -7,7 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signUpSchema } from '../validation/authSchema';
 
 export default function SignUp() {
-  const navigate=useNavigate();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -18,21 +18,24 @@ export default function SignUp() {
   });
 
   const onSubmit = async (data) => {
-  try {
-    const res = await fetch('http://localhost:5000/api/auth/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.message);
+    try {
 
-    localStorage.setItem('token', result.token);
-    navigate('/')
-  } catch (err) {
-    console.error(err.message); // wire to a toast/error UI next
-  }
-};
+      const res = await fetch('http://localhost:5000/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // tells browser to send/accept cookies cross-origin
+        body: JSON.stringify(data),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message);
+
+
+      navigate('/')
+    } catch (err) {
+      console.error(err.message); // wire to a toast/error UI next
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -49,7 +52,7 @@ export default function SignUp() {
           />
           <span className="font-bold text-2xl text-navy tracking-tight">post bridge</span>
         </Link>
-        
+
         <h2 className="mt-6 text-3xl md:text-4xl font-extrabold text-navy tracking-tight">
           Create your account
         </h2>
@@ -98,11 +101,10 @@ export default function SignUp() {
                   placeholder="Jack Smith"
                   {...register('fullName')}
                   aria-invalid={errors.fullName ? 'true' : 'false'}
-                  className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${
-                    errors.fullName
+                  className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${errors.fullName
                       ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
                       : 'border-gray-200 focus:border-post-green focus:ring-post-green'
-                  }`}
+                    }`}
                 />
               </div>
               {errors.fullName && (
@@ -126,11 +128,10 @@ export default function SignUp() {
                   placeholder="name@company.com"
                   {...register('email')}
                   aria-invalid={errors.email ? 'true' : 'false'}
-                  className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${
-                    errors.email
+                  className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${errors.email
                       ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
                       : 'border-gray-200 focus:border-post-green focus:ring-post-green'
-                  }`}
+                    }`}
                 />
               </div>
               {errors.email && (
@@ -154,11 +155,10 @@ export default function SignUp() {
                   placeholder="At least 8 characters"
                   {...register('password')}
                   aria-invalid={errors.password ? 'true' : 'false'}
-                  className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${
-                    errors.password
+                  className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${errors.password
                       ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
                       : 'border-gray-200 focus:border-post-green focus:ring-post-green'
-                  }`}
+                    }`}
                 />
               </div>
               {errors.password && (
@@ -182,11 +182,10 @@ export default function SignUp() {
                   placeholder="Re-enter your password"
                   {...register('confirmPassword')}
                   aria-invalid={errors.confirmPassword ? 'true' : 'false'}
-                  className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${
-                    errors.confirmPassword
+                  className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${errors.confirmPassword
                       ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
                       : 'border-gray-200 focus:border-post-green focus:ring-post-green'
-                  }`}
+                    }`}
                 />
               </div>
               {errors.confirmPassword && (

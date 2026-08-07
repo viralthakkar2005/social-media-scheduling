@@ -3,11 +3,19 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
+const cookieParser = require('cookie-parser');
 
 connectDB();
 
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  origin: 'http://localhost:5173', // your Vite frontend URL, exact — no '*' allowed with credentials
+  credentials: true,
+}));
+app.use(cookieParser());
+
+
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
