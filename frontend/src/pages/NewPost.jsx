@@ -34,23 +34,7 @@ export default function NewPost() {
             </p>
           </div>
 
-          {/* Core Platforms Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white border border-slate-200/80 rounded-full shadow-xs text-xs font-semibold text-slate-500 self-start md:self-auto">
-            <span className="tracking-wider uppercase text-[11px] text-slate-400">
-              3 SUPPORTED PLATFORMS:
-            </span>
-            <div className="flex items-center gap-1 ml-1">
-              <span className="w-5 h-5 bg-[#FF0000] rounded-md flex items-center justify-center text-white" title="YouTube">
-                <YoutubeIcon className="w-3 h-3" />
-              </span>
-              <span className="w-5 h-5 bg-[#0A66C2] rounded-md flex items-center justify-center text-white" title="LinkedIn">
-                <LinkedinIcon className="w-3 h-3" />
-              </span>
-              <span className="w-5 h-5 bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 rounded-md flex items-center justify-center text-white" title="Instagram">
-                <InstagramIcon className="w-3 h-3" />
-              </span>
-            </div>
-          </div>
+          
         </div>
 
         {/* Cards Grid (3 Post Format Cards) */}
@@ -95,12 +79,7 @@ export default function NewPost() {
               <span className="w-6 h-6 rounded-md bg-[#0A66C2] text-white flex items-center justify-center" title="LinkedIn">
                 <LinkedinIcon className="w-3.5 h-3.5" />
               </span>
-              <span className="w-6 h-6 rounded-md bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center" title="Instagram">
-                <InstagramIcon className="w-3.5 h-3.5" />
-              </span>
-              <span className="w-6 h-6 rounded-md bg-[#FF0000] text-white flex items-center justify-center" title="YouTube">
-                <YoutubeIcon className="w-3.5 h-3.5" />
-              </span>
+             
             </div>
           </div>
 

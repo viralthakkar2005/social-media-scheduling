@@ -15,7 +15,7 @@ import SignIn from './pages/SignIn'
 import SignUp from './pages/SignUp'
 import NotFound from './pages/NotFound'
 import DashboardLayout from './component/dashboard/DashboardLayout'
-import ComposePost from './pages/Composepost'
+import UploadPost from './pages/UploadPost'
 
 function App() {
   return (
@@ -38,7 +38,7 @@ function App() {
       <Route path="/sign-in" element={<SignIn />} />
       <Route path="/sign-up" element={<SignUp />} />
       <Route path="*" element={<NotFound />} />
-      <Route path="/upload" element={<ComposePost />} />
+      <Route path="/upload" element={<UploadPost />} />
       
     </Routes>
   )

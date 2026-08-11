@@ -115,7 +115,7 @@ function AccountAvatar({ account }) {
 /*  Main component                                                     */
 /* ------------------------------------------------------------------ */
 
-export default function ComposePost() {
+export default function UploadPost() {
   const navigate = useNavigate();
   const location = useLocation();
 
