@@ -9,6 +9,14 @@ import Connections from './pages/Connections'
 import EditPost from './pages/EditPost'
 
 
+import CalendarPage from './pages/Calendar'
+import Home from './pages/Home'
+import SignIn from './pages/SignIn'
+import SignUp from './pages/SignUp'
+import NotFound from './pages/NotFound'
+import DashboardLayout from './component/dashboard/DashboardLayout'
+import ComposePost from './pages/Composepost'
+
 function App() {
   return (
     <Routes>
@@ -30,6 +38,8 @@ function App() {
       <Route path="/sign-in" element={<SignIn />} />
       <Route path="/sign-up" element={<SignUp />} />
       <Route path="*" element={<NotFound />} />
+      <Route path="/upload" element={<ComposePost />} />
+      
     </Routes>
   )
 }

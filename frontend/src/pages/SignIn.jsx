@@ -48,23 +48,17 @@ export default function SignIn() {
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       {/* Top Branding Logo */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <a
-          href="#"
-          onClick={(e) => {
-            if (onNavigate) {
-              e.preventDefault();
-              onNavigate('home');
-            }
-          }}
-          className="inline-flex items-center gap-2"
-        >
+        <Link
+  to="/"
+  className="inline-flex items-center gap-2"
+>
           <img
             src="src/assets/logo.png"
             alt="Post Bridge Logo"
             className="h-9 w-auto"
           />
           <span className="font-bold text-2xl text-navy tracking-tight">post bridge</span>
-        </a>
+        </Link>
         <h2 className="mt-6 text-3xl md:text-4xl font-extrabold text-navy tracking-tight">
           Welcome back
         </h2>
