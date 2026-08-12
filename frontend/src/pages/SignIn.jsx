@@ -73,9 +73,10 @@ export default function SignIn() {
           {/* Google Login Button */}
           <div>
             <button
-              type="button"
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-full text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-post-green cursor-pointer"
-            >
+  type="button"
+  onClick={() => { window.location.href = 'http://localhost:5000/api/auth/google'; }}
+  className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-full text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-post-green cursor-pointer"
+>
               <FcGoogle className="w-5 h-5" />
               <span>Continue with Google</span>
             </button>
