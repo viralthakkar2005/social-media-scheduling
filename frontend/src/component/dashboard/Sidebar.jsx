@@ -9,6 +9,7 @@ import {
   Sliders,
   Plus,
   LogOut,
+  CircleUserRound,
 } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import { useAuth } from '../../context/AuthContext';
@@ -145,10 +146,24 @@ export default function Sidebar() {
       {/* User Profile Footer */}
       <div className="p-4 border-t border-slate-100 flex items-center justify-between">
         <div className="flex items-center gap-3 overflow-hidden">
-          <img
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120"
-            alt="Jack Smith Avatar"
-            className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+          {user?.picture ? (
+            <img
+              src={user.picture}
+              alt={`${user.fullName || 'User'} avatar`}
+              className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                // Google photo URLs can occasionally 429/expire — hide the
+                // broken img and let the fallback icon show instead.
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextSibling.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          <CircleUserRound
+            className="w-9 h-9 text-slate-300 flex-shrink-0"
+            style={{ display: user?.picture ? 'none' : 'flex' }}
+            strokeWidth={1.5}
           />
           <div className="flex flex-col truncate">
             <span className="text-sm font-semibold text-slate-800 leading-tight truncate">

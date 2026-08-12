@@ -95,9 +95,12 @@ exports.getMe = async (req, res) => {
   }
 
   res.status(200).json({
-    user: { id: user._id, fullName: user.fullName, email: user.email },
+    user: { id: user._id, fullName: user.fullName, email: user.email, picture: user.picture },
   });
 };
+
+
+// GET /api/auth/google
 
 
 // GET /api/auth/google
@@ -176,6 +179,7 @@ exports.googleAuthCallback = async (req, res) => {
       user = await User.findOne({ email: profile.email });
       if (user) {
         user.googleId = profile.sub;
+        if (profile.picture) user.picture = profile.picture;
         await user.save();
       }
     }
@@ -187,7 +191,12 @@ exports.googleAuthCallback = async (req, res) => {
         email: profile.email,
         googleId: profile.sub,
         authProvider: 'google',
+        picture: profile.picture,
       });
+    } else if (profile.picture && user.picture !== profile.picture) {
+      // returning Google user — keep the photo in sync in case they changed it
+      user.picture = profile.picture;
+      await user.save();
     }
 
     const token = generateToken(user._id);

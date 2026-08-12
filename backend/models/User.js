@@ -11,6 +11,10 @@ const userSchema = new mongoose.Schema(
     },
     googleId: { type: String, unique: true, sparse: true },
     authProvider: { type: String, enum: ['local', 'google'], default: 'local' },
+    // Google account profile photo (only present for authProvider: 'google')
+    picture: { type: String },
   },
   { timestamps: true }
 );
+
+module.exports = mongoose.model('User', userSchema);

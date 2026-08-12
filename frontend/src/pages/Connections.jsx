@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, RefreshCw, HelpCircle, Check, Info } from 'lucide-react';
+import { X, Plus, HelpCircle, Check, Info } from 'lucide-react';
 import {
   YoutubeIcon,
   LinkedinIcon,
@@ -8,23 +8,12 @@ import {
 
 const API_BASE = 'http://localhost:5000/api';
 
-// Default initial data supporting multiple accounts per platform for the 3 core supported platforms
-// NOTE: Youtube starts empty now — it's populated for real from the backend
-// on mount. Instagram/Linkedin keep their mock seed data (untouched, out
-// of scope for this task).
+// All platforms start empty — Youtube is populated for real from the
+// backend on mount; Instagram/Linkedin will be too once those
+// integrations are built.
 const INITIAL_CONNECTIONS = {
-  Instagram: [
-    { id: 'ig1', name: 'jackfriks', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120' },
-    { id: 'ig2', name: 'Curiosity.quench', avatar: 'bg-black-logo' },
-    { id: 'ig3', name: 'scroll_less_live_more', avatar: 'bg-blue-500-phone' },
-    { id: 'ig4', name: 'Postbridge', avatar: 'bg-slate-200-logo' },
-    { id: 'ig5', name: 'doof.app', avatar: 'bg-emerald-500-app' },
-  ],
-  Linkedin: [
-    { id: 'li1', name: 'post bridge', avatar: 'bg-slate-200-logo' },
-    { id: 'li2', name: 'jack friks', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120' },
-    { id: 'li3', name: 'Post Bridge Page', avatar: 'bg-[#0f172a]-P' },
-  ],
+  Instagram: [],
+  Linkedin: [],
   Youtube: [],
 };
 
@@ -78,7 +67,6 @@ export default function Connections() {
   const [connections, setConnections] = useState(INITIAL_CONNECTIONS);
   const [modalPlatform, setModalPlatform] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
-  const [refreshingPlatform, setRefreshingPlatform] = useState(null);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -180,13 +168,7 @@ export default function Connections() {
     setModalPlatform(null);
   };
 
-  const handleRefresh = (platformName) => {
-    setRefreshingPlatform(platformName);
-    setTimeout(() => {
-      setRefreshingPlatform(null);
-      showToast(`Successfully refreshed ${platformName} accounts`);
-    }, 800);
-  };
+  
 
   // Helper to render avatar or stylized icon fallback
   const renderAvatar = (account) => {
@@ -324,26 +306,7 @@ export default function Connections() {
             );
           })}
         </div>
-
-        {/* Bottom Refresh Buttons Row */}
-        <div className="mt-12 pt-6 border-t border-slate-200/60 flex flex-wrap items-center gap-3">
-          {['YouTube', 'LinkedIn', 'Instagram'].map((pName) => (
-            <button
-              key={pName}
-              type="button"
-              onClick={() => handleRefresh(pName)}
-              disabled={refreshingPlatform === pName}
-              className="bg-white border border-slate-300 hover:border-slate-400 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold shadow-2xs transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-            >
-              {refreshingPlatform === pName && (
-                <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#5bc983]" />
-              )}
-              <span>Refresh {pName}</span>
-            </button>
-          ))}
-        </div>
       </div>
-
       {/* Footer Link */}
       <div className="mt-12 pt-4">
         <a
