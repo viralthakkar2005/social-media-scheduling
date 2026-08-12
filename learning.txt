@@ -5,3 +5,59 @@
   -with jwt token
   -with session
   -jwt + session (use redise and store session in redis)
+
+
+1. users
+javascript
+{
+  _id: ObjectId,
+  name: String,
+  email: { type: String, unique: true, required: true },
+  password: String,          // bcrypt hash — null if signed up via Google
+  authProvider: String,      // 'local' | 'google'
+  googleId: String,          // Google's account ID — null if signed up via email
+  avatarUrl: String,         // login profile picture (from Google or uploaded)
+  createdAt: Date,
+  updatedAt: Date
+}
+2. connectedaccounts
+javascript
+{
+  _id: ObjectId,
+  userId: { type: ObjectId, ref: 'User', required: true },
+  platform: String,          // 'youtube' | 'instagram' | 'linkedin'
+  accountLabel: String,      // user's own nickname, e.g. "inst-2"
+  platformUserId: String,    // ID assigned by that platform
+  platformUsername: String,  // handle/display name, e.g. "@myshop"
+  platformAvatarUrl: String, // real profile photo, fetched from that platform's API
+  accessToken: String,       // encrypted
+  refreshToken: String,      // encrypted
+  tokenExpiresAt: Date,
+  connectedAt: Date,
+  status: String             // 'active' | 'expired' | 'revoked'
+}
+3. posts
+javascript
+{
+  _id: ObjectId,
+  userId: { type: ObjectId, ref: 'User', required: true },
+  connectedAccountId: { type: ObjectId, ref: 'ConnectedAccount', required: true },
+  platform: String,          // copied from connectedaccounts for quick filtering
+
+  postType: String,          // 'image' | 'video' | 'text'
+  title: String,
+  description: String,
+  mediaUrl: String,          // Cloudinary URL — null for text-only posts
+
+  scheduledTime: { type: Date, required: true },
+  timezone: String,
+
+  status: String,            // 'pending' | 'posted' | 'failed' | 'locked'
+  lockedAt: Date,
+  postedAt: Date,
+  platformPostId: String,
+  errorMessage: String,
+
+  createdAt: Date,
+  updatedAt: Date
+}

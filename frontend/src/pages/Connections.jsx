@@ -33,10 +33,49 @@ const PLATFORMS_CONFIG = [
   { key: 'Instagram', label: 'Connect Instagram', icon: InstagramIcon },
 ];
 
+// Per-platform copy shown inside the connect popup (bullets, optional inline link, button label)
+const PLATFORM_MODAL_CONFIG = {
+  Instagram: {
+    title: 'Connect Instagram',
+    icon: InstagramIcon,
+    bullets: [
+      {
+        text: 'Requires Instagram Business or Creator profile.',
+        linkText: '(How to set up?)',
+        linkHref: 'https://help.instagram.com/502981923235522',
+      },
+      { text: 'To add another account, log out/switch on instagram.com first' },
+    ],
+    buttonLabel: 'Connect Instagram',
+  },
+  Youtube: {
+    title: 'Connect YouTube',
+    icon: YoutubeIcon,
+    bullets: [
+      { text: 'Google account must be associated with a YouTube channel' },
+      {
+        text: 'You can revoke our access to your data at any time through the',
+        linkText: 'Google security settings page',
+        linkHref: 'https://myaccount.google.com/permissions',
+      },
+    ],
+    buttonLabel: 'Connect YouTube',
+  },
+  Linkedin: {
+    title: 'Connect LinkedIn',
+    icon: LinkedinIcon,
+    bullets: [
+      {
+        text: 'Make sure you are signed in to the LinkedIn Profile account you wish to connect. You may need to sign out and sign in to the correct account before proceeding.',
+      },
+    ],
+    buttonLabel: 'Connect LinkedIn',
+  },
+};
+
 export default function Connections() {
   const [connections, setConnections] = useState(INITIAL_CONNECTIONS);
   const [modalPlatform, setModalPlatform] = useState(null);
-  const [newAccountName, setNewAccountName] = useState('');
   const [toastMessage, setToastMessage] = useState('');
   const [refreshingPlatform, setRefreshingPlatform] = useState(null);
 
@@ -55,23 +94,23 @@ export default function Connections() {
     showToast(`Disconnected ${accountName} from ${platformKey}`);
   };
 
-  const handleConnectNew = (e) => {
-    e.preventDefault();
-    if (!newAccountName.trim() || !modalPlatform) return;
+  // Simulates the OAuth redirect/consent flow for the given platform, then
+  // adds the newly "authorized" account once the user confirms in the popup.
+  const handleConnectNew = (platformKey) => {
+    if (!platformKey) return;
 
     const newAcc = {
       id: Date.now().toString(),
-      name: newAccountName.trim(),
+      name: `New ${platformKey} account`,
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120',
     };
 
     setConnections((prev) => ({
       ...prev,
-      [modalPlatform]: [...(prev[modalPlatform] || []), newAcc],
+      [platformKey]: [...(prev[platformKey] || []), newAcc],
     }));
 
-    showToast(`Connected ${newAccountName.trim()} to ${modalPlatform}`);
-    setNewAccountName('');
+    showToast(`Connected to ${platformKey}`);
     setModalPlatform(null);
   };
 
@@ -254,41 +293,53 @@ export default function Connections() {
         </a>
       </div>
 
-      {/* Modal for connecting a new account */}
-      {modalPlatform && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-slate-100 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-lg font-bold text-slate-800">
-                Connect {modalPlatform} Account
-              </h3>
-              <button
-                onClick={() => setModalPlatform(null)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      {/* Platform-specific connect popup (mirrors each platform's OAuth consent requirements) */}
+      {modalPlatform && (() => {
+        const config = PLATFORM_MODAL_CONFIG[modalPlatform];
+        if (!config) return null;
+        const ModalIcon = config.icon;
 
-            <form onSubmit={handleConnectNew} className="flex flex-col gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  Account Name / Username
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. my_brand_official"
-                  value={newAccountName}
-                  onChange={(e) => setNewAccountName(e.target.value)}
-                  autoFocus
-                  required
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#5bc983] text-sm text-slate-800"
-                />
+        return (
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-slate-100 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ModalIcon className="w-5 h-5 text-slate-800" />
+                  <h3 className="text-lg font-bold text-slate-800">
+                    {config.title}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setModalPlatform(null)}
+                  className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              <p className="text-xs text-slate-400">
-                Authorizing Post Bridge to manage posts on your behalf for {modalPlatform}.
-              </p>
+              <ul className="flex flex-col gap-2">
+                {config.bullets.map((bullet, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-sm text-slate-600">
+                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#5bc983] flex-shrink-0" />
+                    <span>
+                      {bullet.text}
+                      {bullet.linkText && (
+                        <>
+                          {' '}
+                          <a
+                            href={bullet.linkHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#5bc983] hover:text-[#4eb573] underline"
+                          >
+                            {bullet.linkText}
+                          </a>
+                        </>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
 
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
@@ -299,16 +350,17 @@ export default function Connections() {
                   Cancel
                 </button>
                 <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-[#5bc983] hover:bg-[#4eb573] shadow-2xs transition-colors cursor-pointer"
+                  type="button"
+                  onClick={() => handleConnectNew(modalPlatform)}
+                  className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#5bc983] hover:bg-[#4eb573] shadow-2xs transition-colors cursor-pointer"
                 >
-                  Authorize & Connect
+                  {config.buttonLabel}
                 </button>
               </div>
-            </form>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Toast Notification */}
       {toastMessage && (
