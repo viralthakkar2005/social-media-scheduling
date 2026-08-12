@@ -3,6 +3,11 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { signUpSchema, signInSchema } = require('../validators/authValidator');
 
+const crypto = require('crypto');
+const { google } = require('../config/oauthConfig');
+
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
 const generateToken = (userId) =>
   jwt.sign({ id: userId }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -92,4 +97,110 @@ exports.getMe = async (req, res) => {
   res.status(200).json({
     user: { id: user._id, fullName: user.fullName, email: user.email },
   });
+};
+
+
+// GET /api/auth/google
+// Kicks off Google sign-in/sign-up. Unlike the YouTube-connect flow, there's
+// no logged-in user yet to bind `state` to, so instead we drop a random
+// value in a short-lived httpOnly cookie and check it matches on callback
+// (standard OAuth CSRF protection).
+exports.googleAuthStart = (req, res) => {
+  const state = crypto.randomBytes(24).toString('hex');
+
+  res.cookie('oauth_state', state, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 10 * 60 * 1000, // 10 minutes
+  });
+
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: google.clientId,
+    redirect_uri: google.redirectUri,
+    scope: google.scope,
+    prompt: 'select_account',
+    state,
+  });
+
+  res.redirect(`${google.authUrl}?${params.toString()}`);
+};
+
+// GET /api/auth/google/callback  (not cookie-auth-protected — Google calls this, not our SPA)
+exports.googleAuthCallback = async (req, res) => {
+  const { code, state } = req.query;
+  const savedState = req.cookies.oauth_state;
+  res.clearCookie('oauth_state');
+
+  if (!code || !state || !savedState || state !== savedState) {
+    return res.redirect(`${FRONTEND_URL}/sign-in?error=invalid_state`);
+  }
+
+  try {
+    const tokenRes = await fetch(google.tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code,
+        client_id: google.clientId,
+        client_secret: google.clientSecret,
+        redirect_uri: google.redirectUri,
+        grant_type: 'authorization_code',
+      }),
+    });
+    const tokenData = await tokenRes.json();
+
+    if (!tokenRes.ok || !tokenData.access_token) {
+      return res.redirect(`${FRONTEND_URL}/sign-in?error=google_auth_failed`);
+    }
+
+    const profileRes = await fetch(google.userInfoUrl, {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+    const profile = await profileRes.json();
+
+    if (!profileRes.ok || !profile.sub || !profile.email) {
+      return res.redirect(`${FRONTEND_URL}/sign-in?error=google_profile_failed`);
+    }
+    if (!profile.email_verified) {
+      return res.redirect(`${FRONTEND_URL}/sign-in?error=email_not_verified`);
+    }
+
+    // 1. returning Google user
+    let user = await User.findOne({ googleId: profile.sub });
+
+    // 2. an email/password account already exists with this email — link it
+    //    instead of creating a duplicate
+    if (!user) {
+      user = await User.findOne({ email: profile.email });
+      if (user) {
+        user.googleId = profile.sub;
+        await user.save();
+      }
+    }
+
+    // 3. brand new user
+    if (!user) {
+      user = await User.create({
+        fullName: profile.name || profile.email.split('@')[0],
+        email: profile.email,
+        googleId: profile.sub,
+        authProvider: 'google',
+      });
+    }
+
+    const token = generateToken(user._id);
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.redirect(`${FRONTEND_URL}/dashboard/new-post`);
+  } catch (err) {
+    console.error('Google auth callback error:', err.message);
+    return res.redirect(`${FRONTEND_URL}/sign-in?error=google_auth_failed`);
+  }
 };

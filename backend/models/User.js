@@ -4,9 +4,13 @@ const userSchema = new mongoose.Schema(
   {
     fullName: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true }, // stored as bcrypt hash, never plain
+    // only required for local (email+password) accounts
+    password: {
+      type: String,
+      required: function () { return this.authProvider === 'local'; },
+    },
+    googleId: { type: String, unique: true, sparse: true },
+    authProvider: { type: String, enum: ['local', 'google'], default: 'local' },
   },
   { timestamps: true }
 );
-
-module.exports = mongoose.model('User', userSchema);
