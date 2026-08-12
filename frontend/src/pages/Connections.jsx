@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus, RefreshCw, HelpCircle, Check, Info } from 'lucide-react';
 import {
   YoutubeIcon,
@@ -6,7 +6,12 @@ import {
   InstagramIcon,
 } from '../component/dashboard/SocialIcons';
 
+const API_BASE = 'http://localhost:5000/api';
+
 // Default initial data supporting multiple accounts per platform for the 3 core supported platforms
+// NOTE: Youtube starts empty now — it's populated for real from the backend
+// on mount. Instagram/Linkedin keep their mock seed data (untouched, out
+// of scope for this task).
 const INITIAL_CONNECTIONS = {
   Instagram: [
     { id: 'ig1', name: 'jackfriks', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120' },
@@ -20,11 +25,7 @@ const INITIAL_CONNECTIONS = {
     { id: 'li2', name: 'jack friks', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120' },
     { id: 'li3', name: 'Post Bridge Page', avatar: 'bg-[#0f172a]-P' },
   ],
-  Youtube: [
-    { id: 'yt1', name: 'jack friks', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120' },
-    { id: 'yt2', name: 'jack friks shorts', avatar: 'bg-black-skull' },
-    { id: 'yt3', name: 'Post Bridge TV', avatar: 'bg-blue-500-phone' },
-  ],
+  Youtube: [],
 };
 
 const PLATFORMS_CONFIG = [
@@ -86,7 +87,66 @@ export default function Connections() {
     }, 3000);
   };
 
-  const handleDisconnect = (platformKey, accountId, accountName) => {
+  // Load real connected YouTube accounts on mount.
+  useEffect(() => {
+    const loadYoutubeAccounts = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/connect`, {
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const ytAccounts = (data.accounts || [])
+          .filter((a) => a.platform === 'youtube')
+          .map((a) => ({
+            id: a._id,
+            name: a.platformUsername || 'YouTube channel',
+            avatar: a.platformAvatarUrl || 'bg-black-skull',
+          }));
+
+        setConnections((prev) => ({ ...prev, Youtube: ytAccounts }));
+      } catch (err) {
+        // network hiccup — YouTube card just stays empty, nothing to break
+      }
+    };
+
+    loadYoutubeAccounts();
+  }, []);
+
+  // Surface a redirect error from the OAuth callback (?error=...), then
+  // strip it from the URL so a refresh doesn't re-show the toast.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    if (!error) return;
+
+    showToast(`YouTube connection failed: ${error.replace(/_/g, ' ')}`);
+
+    params.delete('error');
+    const newSearch = params.toString();
+    const newUrl =
+      window.location.pathname + (newSearch ? `?${newSearch}` : '');
+    window.history.replaceState({}, '', newUrl);
+  }, []);
+
+  const handleDisconnect = async (platformKey, accountId, accountName) => {
+    if (platformKey === 'Youtube') {
+      try {
+        const res = await fetch(`${API_BASE}/connect/${accountId}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        if (!res.ok) {
+          showToast('Failed to disconnect — try again');
+          return;
+        }
+      } catch (err) {
+        showToast('Failed to disconnect — try again');
+        return;
+      }
+    }
+
     setConnections((prev) => ({
       ...prev,
       [platformKey]: prev[platformKey].filter((acc) => acc.id !== accountId),
@@ -94,10 +154,16 @@ export default function Connections() {
     showToast(`Disconnected ${accountName} from ${platformKey}`);
   };
 
-  // Simulates the OAuth redirect/consent flow for the given platform, then
-  // adds the newly "authorized" account once the user confirms in the popup.
+  // Simulates the OAuth redirect/consent flow for Instagram/LinkedIn (mock,
+  // untouched — out of scope). For YouTube this does a real full-page
+  // redirect into the backend's OAuth start route.
   const handleConnectNew = (platformKey) => {
     if (!platformKey) return;
+
+    if (platformKey === 'Youtube') {
+      window.location.href = `${API_BASE}/connect/youtube/start`;
+      return;
+    }
 
     const newAcc = {
       id: Date.now().toString(),
