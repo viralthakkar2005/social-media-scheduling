@@ -78,3 +78,18 @@ exports.logout = (req, res) => {
   res.clearCookie('token');
   res.status(200).json({ message: 'Logged out' });
 };
+
+// GET /api/auth/me  (protected)
+// Lets the frontend check "am I logged in" on load — the JWT lives in an
+// httpOnly cookie so client-side JS can't read it directly, this is the
+// only way the SPA can know the session is valid.
+exports.getMe = async (req, res) => {
+  const user = await User.findById(req.userId).select('-password');
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  res.status(200).json({
+    user: { id: user._id, fullName: user.fullName, email: user.email },
+  });
+};

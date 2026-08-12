@@ -322,7 +322,7 @@ export default function UploadPost() {
     await new Promise((r) => setTimeout(r, 900)); // simulate network round trip
     setSubmitting(false);
     showToast(scheduleEnabled ? 'Post scheduled!' : 'Post published!');
-    setTimeout(() => navigate('/scheduled'), 900);
+    setTimeout(() => navigate('/dashboard/scheduled'), 900);
   };
 
   /* ---------------- Video controls ---------------- */
@@ -354,7 +354,7 @@ export default function UploadPost() {
       <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate('/new-post')}
+            onClick={() => navigate('/dashboard/new-post')}
             className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer"
             title="Back to format selection"
           >

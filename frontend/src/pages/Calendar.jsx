@@ -592,7 +592,7 @@ export default function CalendarPage() {
 
                   {/* Quick Add Post Button on Day Hover */}
                   <button
-                    onClick={() => navigate('/new-post')}
+                    onClick={() => navigate('/dashboard/new-post')}
                     title={`Create new post for ${dateStr}`}
                     className="opacity-0 group-hover:opacity-100 bg-[#5bc983] text-white w-4 h-4 rounded-md flex items-center justify-center text-xs shadow-2xs hover:bg-[#4eb573] transition-all cursor-pointer"
                   >

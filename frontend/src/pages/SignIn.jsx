@@ -5,8 +5,10 @@ import { FcGoogle } from 'react-icons/fc';
 import { ArrowRight, Mail, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInSchema } from '../validation/authSchema.js';
+import { useAuth } from '../context/AuthContext';
 
 export default function SignIn() {
+  const { login } = useAuth();
   const {
     register,
     handleSubmit,
@@ -36,9 +38,8 @@ export default function SignIn() {
         throw new Error(result.message || 'Something went wrong');
       }
 
-
-
-      navigate('/'); // change to whatever your protected route is
+      login(result.user);
+      navigate('/dashboard/new-post');
     } catch (err) {
       setApiError(err.message);
     }

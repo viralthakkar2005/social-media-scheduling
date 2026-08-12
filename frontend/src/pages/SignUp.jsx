@@ -5,9 +5,11 @@ import { FcGoogle } from 'react-icons/fc';
 import { ArrowRight, User, Mail, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signUpSchema } from '../validation/authSchema';
+import { useAuth } from '../context/AuthContext';
 
 export default function SignUp() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const {
     register,
     handleSubmit,
@@ -30,8 +32,8 @@ export default function SignUp() {
       const result = await res.json();
       if (!res.ok) throw new Error(result.message);
 
-
-      navigate('/')
+      login(result.user);
+      navigate('/dashboard/new-post');
     } catch (err) {
       console.error(err.message); // wire to a toast/error UI next
     }

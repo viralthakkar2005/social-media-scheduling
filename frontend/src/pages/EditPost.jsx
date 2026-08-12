@@ -80,7 +80,7 @@ export default function EditPost() {
     e.preventDefault();
     setToastMessage('Post changes saved successfully!');
     setTimeout(() => {
-      navigate('/calendar');
+      navigate('/dashboard/calendar');
     }, 1200);
   };
 
@@ -88,7 +88,7 @@ export default function EditPost() {
     if (window.confirm('Are you sure you want to delete this post?')) {
       setToastMessage('Post deleted');
       setTimeout(() => {
-        navigate('/calendar');
+        navigate('/dashboard/calendar');
       }, 1000);
     }
   };
@@ -251,7 +251,7 @@ export default function EditPost() {
           <div className="pt-6 border-t border-slate-100 flex items-center justify-end gap-3">
             <button
               type="button"
-              onClick={() => navigate('/calendar')}
+              onClick={() => navigate('/dashboard/calendar')}
               className="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Cancel

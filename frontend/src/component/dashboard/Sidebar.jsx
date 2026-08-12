@@ -11,18 +11,20 @@ import {
   LogOut,
 } from 'lucide-react';
 import logo from '../../assets/logo.png';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Sidebar() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const navItems = {
     create: [
-      { label: 'New post', icon: FileText, path: '/new-post' },
+      { label: 'New post', icon: FileText, path: '/dashboard/new-post' },
     ],
     posts: [
-      { label: 'Calendar', icon: Calendar, path: '/calendar' },
-      { label: 'All', icon: List, path: '/posts' },
-      { label: 'Scheduled', icon: Clock, path: '/scheduled' },
+      { label: 'Calendar', icon: Calendar, path: '/dashboard/calendar' },
+      { label: 'All', icon: List, path: '/dashboard/posts' },
+      { label: 'Scheduled', icon: Clock, path: '/dashboard/scheduled' },
       { label: 'Posted', icon: CheckCircle2, path: '/posted' },
     ],
     config: [
@@ -30,12 +32,17 @@ export default function Sidebar() {
     ],
   };
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/sign-in');
+  };
+
   return (
     <aside className="w-64 bg-white border-r border-slate-200 flex flex-col justify-between flex-shrink-0 z-10 h-screen sticky top-0">
       <div className="p-5 flex flex-col gap-6">
         {/* Brand Header */}
         <NavLink
-          to="/new-post"
+          to="/dashboard/new-post"
           className="flex items-center gap-2 px-1 hover:opacity-90 transition-opacity"
         >
           <img src={logo} alt="Post Bridge Logo" className="h-7 w-auto" />
@@ -46,7 +53,7 @@ export default function Sidebar() {
 
         {/* Primary Action Button */}
         <button
-          onClick={() => navigate('/new-post')}
+          onClick={() => navigate('/dashboard/new-post')}
           className="w-full bg-[#5bc983] hover:bg-[#4eb573] text-white font-medium py-3 px-4 rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer text-sm"
         >
           <Plus className="w-5 h-5 stroke-[2.5]" />
@@ -145,16 +152,16 @@ export default function Sidebar() {
           />
           <div className="flex flex-col truncate">
             <span className="text-sm font-semibold text-slate-800 leading-tight truncate">
-              Jack Smith
+              {user?.fullName || 'Account'}
             </span>
             <span className="text-xs text-slate-400 truncate">
-              jack@postbridge.com
+              {user?.email || ''}
             </span>
           </div>
         </div>
         <button
           title="Log out"
-          onClick={() => navigate('/sign-in')}
+          onClick={handleLogout}
           className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
