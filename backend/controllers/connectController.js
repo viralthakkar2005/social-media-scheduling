@@ -75,7 +75,6 @@ exports.handleYoutubeCallback = async (req, res) => {
     );
 
     const channelData = await channelRes.json();
-    e
     const channel = channelData.items && channelData.items[0];
 
     if (!channelRes.ok || !channel) {
