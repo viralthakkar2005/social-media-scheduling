@@ -13,6 +13,7 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   ImagePlus,
   Trash2,
   Search,
@@ -57,15 +58,16 @@ const PLATFORM_META = {
   },
 };
 
-// Mock connected accounts — in the real app this comes from GET /api/connections
-const CONNECTED_ACCOUNTS = [
-  { id: 'yt1', platform: 'youtube', name: 'jack friks', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120' },
-  { id: 'yt2', platform: 'youtube', name: 'jack friks shorts', initials: 'JS', color: 'bg-slate-800' },
-  { id: 'li1', platform: 'linkedin', name: 'post bridge', initials: 'PB', color: 'bg-slate-700' },
-  { id: 'li2', platform: 'linkedin', name: 'jack friks', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120' },
-  { id: 'ig1', platform: 'instagram', name: 'jackfriks', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120' },
-  { id: 'ig2', platform: 'instagram', name: 'postbridge.app', initials: 'PB', color: 'bg-emerald-500' },
-];
+const API_BASE = 'http://localhost:5000/api';
+
+// Which connected-account platforms are even selectable for a given post
+// format — mirrors the platform icons shown on each format card in
+// NewPost.jsx (Text -> LinkedIn only, Image/Video -> all three).
+const PLATFORMS_BY_FORMAT = {
+  text: ['linkedin'],
+  image: ['youtube', 'linkedin', 'instagram'],
+  video: ['youtube', 'linkedin', 'instagram'],
+};
 
 // What each format accepts as media
 const ACCEPT_BY_FORMAT = {
@@ -124,25 +126,63 @@ export default function UploadPost() {
   // to guess the format, it only enforces what that format allows.
   const format = location.state?.format || 'image';
 
+  /* ---------------- Connected accounts (real data) ---------------- */
+  // Only platforms that support this post format are ever shown here —
+  // e.g. a Text post can only go to LinkedIn, per PLATFORMS_BY_FORMAT.
+  const allowedPlatforms = PLATFORMS_BY_FORMAT[format] || [];
+  const [accounts, setAccounts] = useState([]);
+  const [accountsLoading, setAccountsLoading] = useState(true);
+  const [accountsError, setAccountsError] = useState(false);
+
+  useEffect(() => {
+    const loadAccounts = async () => {
+      setAccountsLoading(true);
+      setAccountsError(false);
+      try {
+        const res = await fetch(`${API_BASE}/connect`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load accounts');
+        const data = await res.json();
+        const mapped = (data.accounts || []).map((a) => ({
+          id: a._id,
+          platform: a.platform,
+          name: a.platformUsername || `${a.platform} account`,
+          avatar: a.platformAvatarUrl || undefined,
+        }));
+        setAccounts(mapped);
+      } catch (err) {
+        setAccountsError(true);
+      } finally {
+        setAccountsLoading(false);
+      }
+    };
+    loadAccounts();
+  }, []);
+
   /* ---------------- Selected accounts ---------------- */
   const [selectedAccountIds, setSelectedAccountIds] = useState([]);
   const [accountSearch, setAccountSearch] = useState('');
 
+  // Accounts eligible for this format at all (e.g. LinkedIn only, for text)
+  const eligibleAccounts = useMemo(
+    () => accounts.filter((a) => allowedPlatforms.includes(a.platform)),
+    [accounts, allowedPlatforms]
+  );
+
   const filteredAccounts = useMemo(
     () =>
-      CONNECTED_ACCOUNTS.filter((a) =>
+      eligibleAccounts.filter((a) =>
         a.name.toLowerCase().includes(accountSearch.toLowerCase())
       ),
-    [accountSearch]
+    [eligibleAccounts, accountSearch]
   );
 
   const selectedPlatforms = useMemo(() => {
     const set = new Set();
-    CONNECTED_ACCOUNTS.forEach((a) => {
+    accounts.forEach((a) => {
       if (selectedAccountIds.includes(a.id)) set.add(a.platform);
     });
     return Array.from(set);
-  }, [selectedAccountIds]);
+  }, [accounts, selectedAccountIds]);
 
   const toggleAccount = (id) => {
     setSelectedAccountIds((prev) =>
@@ -229,6 +269,25 @@ export default function UploadPost() {
 
   const needsYoutubeFields = format === 'video' && selectedPlatforms.includes('youtube');
 
+  // Per-platform caption overrides — only YouTube, LinkedIn, Instagram are
+  // supported (no Facebook/TikTok in this app). Absence of a key for a
+  // platform means "still using the Main Caption".
+  const [captionOverrides, setCaptionOverrides] = useState({});
+  const [showCaptionsPanel, setShowCaptionsPanel] = useState(false);
+  const [showYoutubePanel, setShowYoutubePanel] = useState(false);
+
+  const setPlatformCaption = (platform, text) => {
+    const limit = PLATFORM_META[platform].captionLimit;
+    setCaptionOverrides((prev) => ({ ...prev, [platform]: text.slice(0, limit) }));
+  };
+  const clearPlatformCaption = (platform) => {
+    setCaptionOverrides((prev) => {
+      const next = { ...prev };
+      delete next[platform];
+      return next;
+    });
+  };
+
   const handleThumbSelect = (fileList) => {
     const file = fileList?.[0];
     if (!file) return;
@@ -244,6 +303,7 @@ export default function UploadPost() {
   /* ---------------- Validation + submit ---------------- */
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [toastMessage, setToastMessage] = useState('');
 
   const showToast = (msg) => {
@@ -265,64 +325,57 @@ export default function UploadPost() {
   const handleSubmit = async () => {
     if (!validate()) return;
     setSubmitting(true);
+    setSubmitError('');
 
-    // Build the payload the backend will receive.
-    const payload = {
-      format,
-      accountIds: selectedAccountIds,
-      caption,
-      platformMeta: needsYoutubeFields
-        ? { youtube: { title: youtubeTitle, hasThumbnail: !!youtubeThumb } }
-        : {},
-      scheduledAt: scheduleEnabled ? `${scheduleDate}T${scheduleTime}` : null,
-      mediaCount: mediaFiles.length,
-    };
+    // Build the multipart form the backend's POST /api/posts expects.
+    const formData = new FormData();
+    formData.append('postType', format);
+    formData.append('accountIds', JSON.stringify(selectedAccountIds));
+    formData.append('caption', caption);
 
-    /* -------------------------------------------------------------
-     * BACKEND TODO — none of this exists yet, wire it up like this:
-     *
-     * 1. POST /api/posts  (multipart/form-data, protected by the
-     *    `protect` JWT-cookie middleware from authMiddleware.js)
-     *      - fields: format, caption, accountIds[], scheduledAt
-     *      - files:  media[] (one video or 1..N images)
-     *      - files:  youtubeThumbnail (optional, only when the
-     *                YouTube account + video format are both selected)
-     *      - platformMeta: JSON string, e.g. { youtube: { title } }
-     *
-     * 2. Validate the body with a new zod schema, e.g.
-     *    backend/validators/postValidator.js -> postSchema
-     *
-     * 3. Upload media to object storage (S3 / Cloudinary / R2),
-     *    getting back permanent URLs — do NOT store raw files in Mongo.
-     *
-     * 4. Create a Post document, e.g.
-     *    backend/models/Post.js
-     *      { userId, format, caption, accounts: [{platform, accountId}],
-     *        mediaUrls: [...], platformMeta, status: 'scheduled'|'queued'|'draft',
-     *        scheduledAt, createdAt }
-     *
-     * 5. If scheduledAt is in the future, enqueue a job (BullMQ / Agenda +
-     *    Redis) that fires at that time and calls step 6 below.
-     *    If the user chose "Post now", skip the queue and go straight
-     *    to step 6.
-     *
-     * 6. For each selected account, call that platform's publish API
-     *    using the OAuth token stored for it (see Connections.jsx —
-     *    those tokens don't exist yet either, since account connection
-     *    is still mocked):
-     *      - YouTube Data API v3 (videos.insert)
-     *      - LinkedIn Marketing API (ugcPosts)
-     *      - Instagram Graph API (media + media_publish)
-     *
-     * 7. Update the Post document's status to 'posted' or 'failed'
-     *    per account, so the Posted/Scheduled pages can reflect it.
-     * ------------------------------------------------------------- */
-    console.log('New post payload ->', payload);
+    // Per-platform caption text — only the platforms someone actually
+    // edited get sent; postController falls back to `caption` for the rest.
+    const platformCaptions = selectedPlatforms.reduce((acc, p) => {
+      if (captionOverrides[p] != null) acc[p] = captionOverrides[p];
+      return acc;
+    }, {});
+    formData.append('platformCaptions', JSON.stringify(platformCaptions));
 
-    await new Promise((r) => setTimeout(r, 900)); // simulate network round trip
-    setSubmitting(false);
-    showToast(scheduleEnabled ? 'Post scheduled!' : 'Post published!');
-    setTimeout(() => navigate('/dashboard/scheduled'), 900);
+    if (needsYoutubeFields) {
+      formData.append('youtubeTitle', youtubeTitle);
+      if (youtubeThumb) formData.append('youtubeThumbnail', youtubeThumb.file);
+    }
+
+    if (scheduleEnabled) {
+      formData.append('scheduledAt', `${scheduleDate}T${scheduleTime}`);
+      formData.append('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
+    }
+
+    // format === 'text' has no media files at all
+    mediaFiles.forEach((m) => formData.append('media', m.file));
+
+    try {
+      const res = await fetch(`${API_BASE}/posts`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setSubmitError(data.message || 'Something went wrong — please try again.');
+        setSubmitting(false);
+        return;
+      }
+
+      setSubmitting(false);
+      showToast(scheduleEnabled ? 'Post scheduled!' : 'Post published!');
+      setTimeout(() => navigate('/dashboard/scheduled'), 900);
+    } catch (err) {
+      setSubmitError('Could not reach the server — check your connection and try again.');
+      setSubmitting(false);
+    }
   };
 
   /* ---------------- Video controls ---------------- */
@@ -375,7 +428,12 @@ export default function UploadPost() {
         {/* ---------------------------- LEFT COLUMN ---------------------------- */}
         <div className="flex flex-col gap-6">
           {/* Accounts selector */}
-          <SectionCard title="Post to" hint="Pick every account this post should go out to.">
+          <SectionCard
+            title="Post to"
+            hint={`${FORMAT_LABEL[format]} posts support ${allowedPlatforms
+              .map((p) => PLATFORM_META[p].label)
+              .join(', ')}.`}
+          >
             <div className="relative mb-4">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -387,44 +445,64 @@ export default function UploadPost() {
               />
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              {filteredAccounts.map((account) => {
-                const meta = PLATFORM_META[account.platform];
-                const isSelected = selectedAccountIds.includes(account.id);
-                return (
-                  <button
-                    key={account.id}
-                    type="button"
-                    onClick={() => toggleAccount(account.id)}
-                    title={`${account.name} · ${meta.label}`}
-                    className="relative w-12 h-12 rounded-full cursor-pointer transition-transform hover:scale-105"
-                  >
-                    <div
-                      className={`w-full h-full rounded-full p-0.5 ${
-                        isSelected ? `ring-2 ${meta.ring}` : 'ring-1 ring-slate-200 opacity-60 hover:opacity-100'
-                      }`}
+            {accountsLoading ? (
+              <p className="text-sm text-slate-400 py-2 flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" /> Loading your connected accounts…
+              </p>
+            ) : accountsError ? (
+              <p className="text-sm text-rose-500 py-2">
+                Couldn't load your connected accounts. Refresh to try again.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-3">
+                {filteredAccounts.map((account) => {
+                  const meta = PLATFORM_META[account.platform];
+                  const isSelected = selectedAccountIds.includes(account.id);
+                  return (
+                    <button
+                      key={account.id}
+                      type="button"
+                      onClick={() => toggleAccount(account.id)}
+                      title={`${account.name} · ${meta.label}`}
+                      className="relative w-12 h-12 rounded-full cursor-pointer transition-transform hover:scale-105"
                     >
-                      <AccountAvatar account={account} />
-                    </div>
-                    {/* Platform badge */}
-                    <span
-                      className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white border-2 border-white"
-                      style={{ background: meta.bg }}
-                    >
-                      <meta.Icon className="w-2.5 h-2.5" />
-                    </span>
-                    {isSelected && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#5bc983] border-2 border-white flex items-center justify-center">
-                        <Check className="w-2.5 h-2.5 text-white stroke-[4]" />
+                      <div
+                        className={`w-full h-full rounded-full p-0.5 ${
+                          isSelected ? `ring-2 ${meta.ring}` : 'ring-1 ring-slate-200 opacity-60 hover:opacity-100'
+                        }`}
+                      >
+                        <AccountAvatar account={account} />
+                      </div>
+                      {/* Platform badge */}
+                      <span
+                        className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-white border-2 border-white"
+                        style={{ background: meta.bg }}
+                      >
+                        <meta.Icon className="w-2.5 h-2.5" />
                       </span>
-                    )}
-                  </button>
-                );
-              })}
-              {filteredAccounts.length === 0 && (
-                <p className="text-sm text-slate-400 py-2">No accounts match “{accountSearch}”.</p>
-              )}
-            </div>
+                      {isSelected && (
+                        <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#5bc983] border-2 border-white flex items-center justify-center">
+                          <Check className="w-2.5 h-2.5 text-white stroke-[4]" />
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+
+                {eligibleAccounts.length === 0 && (
+                  <p className="text-sm text-slate-400 py-2">
+                    No connected accounts support {FORMAT_LABEL[format].toLowerCase()} posts yet. Connect one on the{' '}
+                    <Link to="/connections" className="text-[#5bc983] font-semibold hover:underline">
+                      Connections
+                    </Link>{' '}
+                    page.
+                  </p>
+                )}
+                {eligibleAccounts.length > 0 && filteredAccounts.length === 0 && (
+                  <p className="text-sm text-slate-400 py-2">No accounts match "{accountSearch}".</p>
+                )}
+              </div>
+            )}
 
             {errors.accounts && (
               <p className="text-xs text-rose-600 font-medium mt-3 flex items-center gap-1.5">
@@ -522,108 +600,184 @@ export default function UploadPost() {
             )}
           </SectionCard>
 
-          {/* Per-platform fields — the "3rd part" */}
+          {/* Post configuration chips — only tools this app actually supports:
+              per-platform caption overrides, and YouTube's title/thumbnail
+              (no Facebook, TikTok, "Past Captions", or "Processing" — those
+              aren't real features here). */}
           {selectedPlatforms.length > 0 && (
-            <SectionCard title="Platform settings" hint="Fields shown here only apply to platforms that need something extra.">
-              <div className="flex flex-col gap-4">
-                {/* YouTube: needs a Title + Thumbnail, but only for video posts */}
-                {selectedPlatforms.includes('youtube') && (
-                  <div className="rounded-xl border border-slate-200 p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="w-6 h-6 rounded-md bg-[#FF0000] text-white flex items-center justify-center">
-                        <YoutubeIcon className="w-3.5 h-3.5" />
-                      </span>
-                      <span className="text-sm font-bold text-slate-800">YouTube</span>
-                    </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wide mr-1">
+                Post configurations
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowCaptionsPanel((v) => !v)}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-semibold transition-colors cursor-pointer ${
+                  showCaptionsPanel
+                    ? 'bg-[#f0fdf4] border-[#5bc983] text-[#2f7d54]'
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                }`}
+              >
+                Platform Captions
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showCaptionsPanel ? 'rotate-180' : ''}`} />
+              </button>
 
-                    {format === 'video' ? (
-                      <div className="flex flex-col gap-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-                            Video title <span className="text-rose-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={youtubeTitle}
-                            onChange={(e) => setYoutubeTitle(e.target.value.slice(0, 100))}
-                            placeholder="Give your video a title"
-                            className={`w-full px-3.5 py-2.5 rounded-xl border text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#5bc983] ${
-                              errors.youtubeTitle ? 'border-rose-300' : 'border-slate-300'
-                            }`}
-                          />
-                          <div className="flex items-center justify-between mt-1">
-                            {errors.youtubeTitle ? (
-                              <p className="text-xs text-rose-600 font-medium flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3" /> {errors.youtubeTitle}
-                              </p>
-                            ) : <span />}
-                            <span className="text-xs text-slate-400">{youtubeTitle.length}/100</span>
-                          </div>
-                        </div>
+              {needsYoutubeFields && (
+                <button
+                  type="button"
+                  onClick={() => setShowYoutubePanel((v) => !v)}
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-semibold transition-colors cursor-pointer ${
+                    errors.youtubeTitle
+                      ? 'bg-rose-50 border-rose-300 text-rose-600'
+                      : showYoutubePanel
+                      ? 'bg-[#f0fdf4] border-[#5bc983] text-[#2f7d54]'
+                      : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                  }`}
+                >
+                  <YoutubeIcon className="w-3.5 h-3.5" />
+                  YouTube Title
+                  {errors.youtubeTitle && <AlertCircle className="w-3.5 h-3.5" />}
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showYoutubePanel ? 'rotate-180' : ''}`} />
+                </button>
+              )}
+            </div>
+          )}
 
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-600 mb-1.5">
-                            Thumbnail <span className="text-slate-400 font-normal">(optional)</span>
-                          </label>
-                          {youtubeThumb ? (
-                            <div className="relative w-32 h-20 rounded-lg overflow-hidden border border-slate-200">
-                              <img src={youtubeThumb.url} alt="Thumbnail" className="w-full h-full object-cover" />
-                              <button
-                                type="button"
-                                onClick={() => { URL.revokeObjectURL(youtubeThumb.url); setYoutubeThumb(null); }}
-                                className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 cursor-pointer"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </div>
+          {/* Platform Captions panel — override the Main Caption per platform,
+              same "Using main caption / Edit / Clear" pattern for every
+              platform we actually support. */}
+          {showCaptionsPanel && selectedPlatforms.length > 0 && (
+            <SectionCard title="Platform Captions" hint="Override the main caption for individual platforms.">
+              <div className="flex flex-col gap-5">
+                {selectedPlatforms.map((platform) => {
+                  const meta = PLATFORM_META[platform];
+                  const isEdited = captionOverrides[platform] != null;
+                  const value = isEdited ? captionOverrides[platform] : caption;
+                  return (
+                    <div key={platform}>
+                      <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-5 h-5 rounded flex items-center justify-center text-white flex-shrink-0"
+                            style={{ background: meta.bg }}
+                          >
+                            <meta.Icon className="w-3 h-3" />
+                          </span>
+                          <span className="text-sm font-bold text-slate-800">{meta.label}</span>
+                          {isEdited ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#2f7d54] bg-[#f0fdf4] px-2 py-0.5 rounded-full">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#5bc983]" /> Edited caption
+                            </span>
                           ) : (
-                            <button
-                              type="button"
-                              onClick={() => thumbInputRef.current?.click()}
-                              className="w-32 h-20 rounded-lg border-2 border-dashed border-slate-200 hover:border-slate-300 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-slate-500 cursor-pointer"
-                            >
-                              <ImagePlus className="w-5 h-5" />
-                              <span className="text-[11px] font-medium">Add image</span>
-                            </button>
+                            <span className="text-[11px] text-slate-400">Using main caption</span>
                           )}
-                          <input
-                            ref={thumbInputRef}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => handleThumbSelect(e.target.files)}
-                          />
+                        </div>
+                        {isEdited ? (
+                          <button
+                            type="button"
+                            onClick={() => clearPlatformCaption(platform)}
+                            className="text-xs font-semibold text-slate-400 hover:text-rose-500 cursor-pointer"
+                          >
+                            Clear
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setPlatformCaption(platform, caption)}
+                            className="text-xs font-semibold text-[#5bc983] hover:underline cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </div>
+                      <div
+                        className={`rounded-xl border transition-colors ${
+                          isEdited
+                            ? 'border-slate-200 focus-within:border-[#5bc983] focus-within:ring-2 focus-within:ring-[#5bc983]/30'
+                            : 'border-slate-100 bg-slate-50'
+                        }`}
+                      >
+                        <textarea
+                          rows={3}
+                          value={value}
+                          disabled={!isEdited}
+                          onChange={(e) => setPlatformCaption(platform, e.target.value)}
+                          placeholder="Caption here!"
+                          className="w-full px-4 py-3 rounded-t-xl resize-none focus:outline-none text-sm text-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed bg-transparent"
+                        />
+                        <div className="flex items-center justify-end px-4 py-2 border-t border-slate-100 text-xs text-slate-400">
+                          {value.length}/{meta.captionLimit}
                         </div>
                       </div>
-                    ) : (
-                      <p className="text-xs text-slate-400">Uses the Main Caption above — no extra fields for this format.</p>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  );
+                })}
+              </div>
+            </SectionCard>
+          )}
 
-                {/* Instagram: just the caption, nothing else */}
-                {selectedPlatforms.includes('instagram') && (
-                  <div className="rounded-xl border border-slate-200 p-4 flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-md bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center flex-shrink-0">
-                      <InstagramIcon className="w-3.5 h-3.5" />
-                    </span>
-                    <p className="text-xs text-slate-500">
-                      <span className="font-bold text-slate-800">Instagram</span> — uses the Main Caption above as-is. No separate title field, {PLATFORM_META.instagram.captionLimit.toLocaleString()} character limit.
-                    </p>
+          {/* YouTube Title panel — YouTube is the only platform that needs
+              more than a caption: a required title, plus an optional
+              thumbnail. */}
+          {showYoutubePanel && needsYoutubeFields && (
+            <SectionCard title="YouTube" hint="Required for YouTube video uploads.">
+              <div className="flex flex-col gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                    Video title <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={youtubeTitle}
+                    onChange={(e) => setYoutubeTitle(e.target.value.slice(0, 100))}
+                    placeholder="Give your video a title"
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#5bc983] ${
+                      errors.youtubeTitle ? 'border-rose-300' : 'border-slate-300'
+                    }`}
+                  />
+                  <div className="flex items-center justify-between mt-1">
+                    {errors.youtubeTitle ? (
+                      <p className="text-xs text-rose-600 font-medium flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" /> {errors.youtubeTitle}
+                      </p>
+                    ) : <span />}
+                    <span className="text-xs text-slate-400">{youtubeTitle.length}/100</span>
                   </div>
-                )}
+                </div>
 
-                {/* LinkedIn: also just the caption */}
-                {selectedPlatforms.includes('linkedin') && (
-                  <div className="rounded-xl border border-slate-200 p-4 flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-md bg-[#0A66C2] text-white flex items-center justify-center flex-shrink-0">
-                      <LinkedinIcon className="w-3.5 h-3.5" />
-                    </span>
-                    <p className="text-xs text-slate-500">
-                      <span className="font-bold text-slate-800">LinkedIn</span> — uses the Main Caption above as-is. No separate title field, {PLATFORM_META.linkedin.captionLimit.toLocaleString()} character limit.
-                    </p>
-                  </div>
-                )}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+                    Thumbnail <span className="text-slate-400 font-normal">(optional)</span>
+                  </label>
+                  {youtubeThumb ? (
+                    <div className="relative w-32 h-20 rounded-lg overflow-hidden border border-slate-200">
+                      <img src={youtubeThumb.url} alt="Thumbnail" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => { URL.revokeObjectURL(youtubeThumb.url); setYoutubeThumb(null); }}
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 cursor-pointer"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => thumbInputRef.current?.click()}
+                      className="w-32 h-20 rounded-lg border-2 border-dashed border-slate-200 hover:border-slate-300 flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-slate-500 cursor-pointer"
+                    >
+                      <ImagePlus className="w-5 h-5" />
+                      <span className="text-[11px] font-medium">Add image</span>
+                    </button>
+                  )}
+                  <input
+                    ref={thumbInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleThumbSelect(e.target.files)}
+                  />
+                </div>
               </div>
             </SectionCard>
           )}
@@ -782,6 +936,12 @@ export default function UploadPost() {
                 ? 'Your post will go out at this time, in your local timezone.'
                 : "Your post will publish immediately when you submit."}
             </p>
+
+            {submitError && (
+              <p className="text-xs text-rose-600 font-medium mb-3 flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5" /> {submitError}
+              </p>
+            )}
 
             <button
               type="button"

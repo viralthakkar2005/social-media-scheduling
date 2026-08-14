@@ -5,59 +5,60 @@
   -with jwt token
   -with session
   -jwt + session (use redise and store session in redis)
+users
 
+Field	Type	Connects to / Notes
+_id	ObjectId	referenced by connectedaccounts.userId and posts.userId
+fullName	String	
+email	String	unique
+password	String	only for authProvider: 'local'
+authProvider	String	'local' | 'google'
+googleId	String	only for authProvider: 'google'
+picture	String	avatar (Google photo, or future local upload)
+createdAt / updatedAt	Date	auto
 
-1. users
-javascript
-{
-  _id: ObjectId,
-  name: String,
-  email: { type: String, unique: true, required: true },
-  password: String,          // bcrypt hash — null if signed up via Google
-  authProvider: String,      // 'local' | 'google'
-  googleId: String,          // Google's account ID — null if signed up via email
-  avatarUrl: String,         // login profile picture (from Google or uploaded)
-  createdAt: Date,
-  updatedAt: Date
-}
-2. connectedaccounts
-javascript
-{
-  _id: ObjectId,
-  userId: { type: ObjectId, ref: 'User', required: true },
-  platform: String,          // 'youtube' | 'instagram' | 'linkedin'
-  accountLabel: String,      // user's own nickname, e.g. "inst-2"
-  platformUserId: String,    // ID assigned by that platform
-  platformUsername: String,  // handle/display name, e.g. "@myshop"
-  platformAvatarUrl: String, // real profile photo, fetched from that platform's API
-  accessToken: String,       // encrypted
-  refreshToken: String,      // encrypted
-  tokenExpiresAt: Date,
-  connectedAt: Date,
-  status: String             // 'active' | 'expired' | 'revoked'
-}
-3. posts
-javascript
-{
-  _id: ObjectId,
-  userId: { type: ObjectId, ref: 'User', required: true },
-  connectedAccountId: { type: ObjectId, ref: 'ConnectedAccount', required: true },
-  platform: String,          // copied from connectedaccounts for quick filtering
+connectedaccounts
 
-  postType: String,          // 'image' | 'video' | 'text'
-  title: String,
-  description: String,
-  mediaUrl: String,          // Cloudinary URL — null for text-only posts
+Field	Type	Connects to / Notes
+_id	ObjectId	referenced by posts.targets[].connectedAccountId
+userId	ObjectId	→ users._id
+platform	String	'youtube' | 'instagram' | 'linkedin'
+accountLabel	String	user's own nickname
+platformUserId	String	ID from that platform
+platformUsername	String	handle/display name
+platformAvatarUrl	String	real profile photo from platform API
+accessToken / refreshToken	String	encrypted
+tokenExpiresAt	Date	
+status	String	'active' | 'expired' | 'revoked'
+createdAt / updatedAt	Date	auto
 
-  scheduledTime: { type: Date, required: true },
-  timezone: String,
+posts
 
-  status: String,            // 'pending' | 'posted' | 'failed' | 'locked'
-  lockedAt: Date,
-  postedAt: Date,
-  platformPostId: String,
-  errorMessage: String,
+Field	Type	Connects to / Notes
+_id	ObjectId	
+userId	ObjectId	→ users._id
+postType	String	'text' | 'image' | 'video'
+targets[].connectedAccountId	ObjectId	→ connectedaccounts._id (one row per selected account)
+targets[].platform	String	copied from that account
+targets[].status	String	'pending' | 'posted' | 'failed'
+targets[].platformPostId	String	ID returned by that platform after posting
+targets[].postedAt	Date	
+targets[].errorMessage	String	
+caption	String	Main Caption
+platformCaptions.youtube/instagram/linkedin	String	only set if that platform was edited
+media[].url	String	Cloudinary URL
+media[].type	String	'image' | 'video'
+media[].order	Number	carousel order
+youtube.title	String	only when a YouTube target + video format
+youtube.thumbnailUrl	String	Cloudinary URL
+scheduledAt	Date	null = Publish Now
+timezone	String	
+status	String	'draft' | 'scheduled' | 'publishing' | 'posted' | 'partially_failed' | 'failed'
+lockedAt	Date	set while publishing, blocks edits
+createdAt / updatedAt	Date	auto
 
-  createdAt: Date,
-  updatedAt: Date
-}
+Relationships
+
+users (1) ──< connectedaccounts (many)
+users (1) ──< posts (many)
+connectedaccounts (1) ──< posts.targets (many)

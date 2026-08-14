@@ -66,6 +66,7 @@ export default function NewPost() {
               </p>
 
               <button
+                onClick={() => navigate("/dashboard/upload", { state: { format: 'text' } })}
                 type="button"
                 className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#5bc983] hover:underline"
               >
@@ -81,7 +82,7 @@ export default function NewPost() {
               </span>
              
             </div>
-          </div>
+          </div>  
 
           {/* CARD 2: IMAGE POST */}
           <div
@@ -110,6 +111,7 @@ export default function NewPost() {
               </p>
 
               <button
+              onClick={() => navigate("/dashboard/upload", { state: { format: 'image' } })}
                 type="button"
                 className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#5bc983] hover:underline"
               >
@@ -159,6 +161,7 @@ export default function NewPost() {
               </p>
 
               <button
+              onClick={() => navigate("/dashboard/upload", { state: { format: 'video' } })}
                 type="button"
                 className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#5bc983] hover:underline"
               >

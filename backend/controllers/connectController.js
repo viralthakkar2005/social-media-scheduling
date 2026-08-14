@@ -59,8 +59,7 @@ exports.handleYoutubeCallback = async (req, res) => {
     });
 
     const tokenData = await tokenRes.json();
-    console.log('token exchange response:', tokenData); 
-
+    
     if (!tokenRes.ok || !tokenData.access_token) {
       return res.redirect(
         `${FRONTEND_URL}/connections?error=token_exchange_failed`
@@ -76,7 +75,7 @@ exports.handleYoutubeCallback = async (req, res) => {
     );
 
     const channelData = await channelRes.json();
-    console.log('channel fetch response:', channelData); 
+    e
     const channel = channelData.items && channelData.items[0];
 
     if (!channelRes.ok || !channel) {
