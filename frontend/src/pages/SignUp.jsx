@@ -68,10 +68,13 @@ export default function SignUp() {
           {/* Google Sign Up Button */}
           <div>
             <button
-  type="button"
-  onClick={() => { window.location.href = 'http://localhost:5000/api/auth/google'; }}
-  className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-full text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-post-green cursor-pointer"
-></button>
+              type="button"
+              onClick={() => { window.location.href = 'http://localhost:5000/api/auth/google'; }}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-full text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-post-green cursor-pointer"
+            >
+              <FcGoogle className="w-5 h-5" />
+              <span>Continue with Google</span>
+            </button>
           </div>
 
           {/* Divider */}
@@ -102,8 +105,8 @@ export default function SignUp() {
                   {...register('fullName')}
                   aria-invalid={errors.fullName ? 'true' : 'false'}
                   className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${errors.fullName
-                      ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
-                      : 'border-gray-200 focus:border-post-green focus:ring-post-green'
+                    ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
+                    : 'border-gray-200 focus:border-post-green focus:ring-post-green'
                     }`}
                 />
               </div>
@@ -129,8 +132,8 @@ export default function SignUp() {
                   {...register('email')}
                   aria-invalid={errors.email ? 'true' : 'false'}
                   className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${errors.email
-                      ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
-                      : 'border-gray-200 focus:border-post-green focus:ring-post-green'
+                    ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
+                    : 'border-gray-200 focus:border-post-green focus:ring-post-green'
                     }`}
                 />
               </div>
@@ -156,8 +159,8 @@ export default function SignUp() {
                   {...register('password')}
                   aria-invalid={errors.password ? 'true' : 'false'}
                   className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${errors.password
-                      ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
-                      : 'border-gray-200 focus:border-post-green focus:ring-post-green'
+                    ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
+                    : 'border-gray-200 focus:border-post-green focus:ring-post-green'
                     }`}
                 />
               </div>
@@ -183,8 +186,8 @@ export default function SignUp() {
                   {...register('confirmPassword')}
                   aria-invalid={errors.confirmPassword ? 'true' : 'false'}
                   className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${errors.confirmPassword
-                      ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
-                      : 'border-gray-200 focus:border-post-green focus:ring-post-green'
+                    ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
+                    : 'border-gray-200 focus:border-post-green focus:ring-post-green'
                     }`}
                 />
               </div>

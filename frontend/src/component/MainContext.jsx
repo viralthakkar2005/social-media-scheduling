@@ -104,8 +104,8 @@ export default function MainContext() {
           <img
             alt="Jack"
             className="w-8 h-8 rounded-full inline-block"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpb842gmKNYhhtDchfBpnIYR-JxU33ChfIxNy_CD5MQiYnVWzJhuKQu8iTPog4oa1gJRFtct-V3Y379huP-uKOy6sdr4ZdwBYGsqXPhM84tPZXKXCP5v8r97iWzIS-PFVfi2E1LRUsQXXlXWoJilbLJljnVwr_hghJud5AYTiotUifbnz-hKO2b8yWZPDPDSUsKxNk8RHFYJ7wmSGb7DhKd6IuSkryrfikwZB2fcEgAyhMpcFpOHSM4g"
-          />.
+            src='src/assets/founder.webp'
+            />.
         </p>
         <a
           className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-post-green rounded-full shadow-sm hover:shadow-md transition-all gap-2 group"
@@ -115,16 +115,7 @@ export default function MainContext() {
           Try it for free 
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
         </a>
-        <div className="mt-8 text-sm text-gray-400 flex items-center justify-center gap-2">
-          posting with an AI agent? <a className="hover:text-gray-600" href="#">click here →</a>
-          <div className="flex gap-1 ml-2">
-            {/* Mini icons representing AI tools */}
-            <span className="w-4 h-4 bg-orange-200 rounded-sm inline-block"></span>
-            <span className="w-4 h-4 bg-teal-200 rounded-sm inline-block"></span>
-            <span className="w-4 h-4 bg-red-200 rounded-sm inline-block"></span>
-            <span className="w-4 h-4 bg-black rounded-sm inline-block"></span>
-          </div>
-        </div>
+        
       </section>
 
       {/* CROSS-POSTING SECTION */}

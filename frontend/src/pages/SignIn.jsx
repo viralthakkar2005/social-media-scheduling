@@ -50,9 +50,9 @@ export default function SignIn() {
       {/* Top Branding Logo */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link
-  to="/"
-  className="inline-flex items-center gap-2"
->
+          to="/"
+          className="inline-flex items-center gap-2"
+        >
           <img
             src="src/assets/logo.png"
             alt="Post Bridge Logo"
@@ -73,10 +73,10 @@ export default function SignIn() {
           {/* Google Login Button */}
           <div>
             <button
-  type="button"
-  onClick={() => { window.location.href = 'http://localhost:5000/api/auth/google'; }}
-  className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-full text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-post-green cursor-pointer"
->
+              type="button"
+              onClick={() => { window.location.href = 'http://localhost:5000/api/auth/google'; }}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-full text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-post-green cursor-pointer"
+            >
               <FcGoogle className="w-5 h-5" />
               <span>Continue with Google</span>
             </button>
@@ -111,8 +111,8 @@ export default function SignIn() {
                   {...register('email')}
                   aria-invalid={errors.email ? 'true' : 'false'}
                   className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${errors.email
-                      ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
-                      : 'border-gray-200 focus:border-post-green focus:ring-post-green'
+                    ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
+                    : 'border-gray-200 focus:border-post-green focus:ring-post-green'
                     }`}
                 />
               </div>
@@ -143,8 +143,8 @@ export default function SignIn() {
                   {...register('password')}
                   aria-invalid={errors.password ? 'true' : 'false'}
                   className={`block w-full pl-10 pr-4 py-3 border rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-all ${errors.password
-                      ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
-                      : 'border-gray-200 focus:border-post-green focus:ring-post-green'
+                    ? 'border-red-400 focus:border-red-400 focus:ring-red-400'
+                    : 'border-gray-200 focus:border-post-green focus:ring-post-green'
                     }`}
                 />
               </div>
@@ -181,10 +181,10 @@ export default function SignIn() {
             </div>
           </form>
           {apiError && (
-  <div className="mt-4 rounded-lg bg-red-50 border border-red-200 px-4 py-2.5 text-sm text-red-600">
-    {apiError}
-  </div>
-)}
+            <div className="mt-4 rounded-lg bg-red-50 border border-red-200 px-4 py-2.5 text-sm text-red-600">
+              {apiError}
+            </div>
+          )}
         </div>
 
         {/* Footer switch prompt */}
