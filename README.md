@@ -20,7 +20,10 @@ Below is a quick visual tour of the app in its current state.
 ## 1. Authentication
 
 ## landing page
-<video controls src="All photos/20260815-0701-09.8330318.mp4" title="Title"></video>
+
+
+https://github.com/user-attachments/assets/873a8113-3e7d-4eb9-bfa5-a6d4a8189296
+
 
 ### Sign Up Page
 ![alt text](All%20photos/image-1.png)
