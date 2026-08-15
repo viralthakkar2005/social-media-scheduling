@@ -11,76 +11,76 @@
 ## 1. Authentication
 
 ## landing page
-<video controls src="20260815-0701-09.8330318.mp4" title="Title"></video>
+<video controls src="All photos/20260815-0701-09.8330318.mp4" title="Title"></video>
 
 ### Sign Up Page
-![alt text](image-1.png)
+![alt text](All%20photos/image-1.png)
 
 ### Login Page
-![alt text](image-2.png)
+![alt text](All%20photos/image-2.png)
 
 ---
 
 ## 2. Create a New Post
 Choose between a Text, Image, or Video post — each mapped to the platforms that support it (LinkedIn only for text; Instagram/LinkedIn/YouTube for image; YouTube/Instagram/LinkedIn for video).
 
-![alt text](image-3.png)
+![alt text](All%20photos/image-3.png)
 ---
 
 ## 3. Create Video Post — Select Account & Upload Media
 Pick the connected account(s) to post to and drag & drop the video file.
 
-![alt text](image-4.png)
+![alt text](All%20photos/image-4.png)
 
 ---
 
 ## 4. Create Video Post — Caption, Platform Settings & Scheduling
 Set a main caption, configure platform-specific fields (e.g. YouTube title & thumbnail), and either publish now or schedule for later.
 
-![alt text](image-5.png)
-![alt text](image-6.png)
+![alt text](All%20photos/image-5.png)
+![alt text](All%20photos/image-6.png)
 
 ---
 
 ## 5. Calendar View
 A calendar of all scheduled and published posts, with details for the selected day shown alongside.
 
-![alt text](image-7.png)
+![alt text](All%20photos/image-7.png)
 
 ---
 
 ## 6. All Posts
 A unified view of every draft, scheduled, and published post.
 
-![alt text](image-8.png)
+![alt text](All%20photos/image-8.png)
 
 ---
 
 ## 7. Scheduled Posts
 Posts queued for automatic publishing at their scheduled time.
 
-![alt text](image-9.png)
+![alt text](All%20photos/image-9.png)
 
 ---
 
 ## 8. Posted History
 History of posts successfully published across connected platforms.
 
-![alt text](image-10.png)
+![alt text](All%20photos/image-10.png)
 
 ---
 
 ## 9. Connected Accounts
 Manage YouTube, LinkedIn, and Instagram connections from one place.
 
-![alt text](image-11.png)
+![alt text](All%20photos/image-11.png)
 
 ---
 
 ## 10. Connect YouTube — OAuth Confirmation
 A confirmation modal before redirecting to Google OAuth to link a YouTube channel.
 
-![alt text](image-12.png)
+![alt text](All%20photos/image-12.png)
 ---
 
 ## Notes for reviewers
