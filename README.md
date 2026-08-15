@@ -1,11 +1,20 @@
-# Post Bridge — Screenshots
-
-**Post Bridge** is a MERN-stack social media scheduling tool that lets you compose a post once and cross-post it natively to YouTube, LinkedIn, and Instagram, then track it through scheduling and publishing.
-
-> ⚠️ This project is still under active development, so there's no public live demo yet. The screenshots below walk through the current working flow. Live link and video demo will be added once deployment is finalized.
-
-**Tech stack:** React 19 + Vite + Tailwind CSS (frontend) · Express 5 + MongoDB (Mongoose) + JWT auth + Cloudinary + Multer (backend)
-
+# 🌉 Post Bridge
+ 
+Ever wished you could write **one post** and send it flying to YouTube, LinkedIn, and Instagram at the same time — without opening three different apps? That's exactly what **Post Bridge** does.
+ 
+**The problem:** if you've ever tried posting the same video to YouTube, Instagram, and LinkedIn, you know the drill — upload the file, write the caption, hit publish... then do it all over again on the next platform, and the next. It's the same video, three separate uploads, three times the effort.
+ 
+**The fix:** Post Bridge lets you upload the video **once**, pick every platform you want it on, and publish (or schedule) to all of them in a single action — no re-uploading, no repeating yourself.
+ 
+It's a MERN-stack app where you create a post once, pick where it should go, and either publish it instantly or schedule it for later. A built-in calendar and history log keep track of everything so you always know what's live, what's queued, and what's already gone out.
+ 
+Below is a quick visual tour of the app in its current state.
+ 
+> ⚠️ **Still a work in progress** — there's no public live demo yet, so the screenshots below show the real, working flow. A hosted link and video walkthrough will be added once deployment is finalized.
+ 
+**Built with:** React 19 + Vite + Tailwind CSS on the frontend · Express 5 + MongoDB (Mongoose) + JWT auth + Cloudinary + Multer on the backend
+ 
+---
 ---
 
 ## 1. Authentication
