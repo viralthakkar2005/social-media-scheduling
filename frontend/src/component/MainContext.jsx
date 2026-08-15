@@ -12,6 +12,40 @@ import {
   SiGoogle,
 } from 'react-icons/si';
 import { FaLinkedin as SiLinkedin } from 'react-icons/fa6';
+import CrossPostAnimation from './Crosspostanimation';
+
+/**
+ * VideoCard
+ * ---------
+ * Same footprint as CrossPostAnimation: rounded-3xl gradient shell,
+ * max-w-lg, aspect-square, border + inner highlight. Keeps the
+ * Content management / Scheduling sections visually consistent with
+ * the Cross-posting section instead of a plain full-bleed <img>.
+ *
+ * `src` should point at your local asset, e.g. "/assets/content-management.mp4"
+ */
+function VideoCard({ src, poster, label }) {
+  return (
+    <div className="relative rounded-3xl bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4 max-w-lg w-full mx-auto border border-gray-200/70 aspect-square shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_1px_2px_rgba(0,0,0,0.04)]">
+      <video
+        className="w-full h-full object-cover rounded-2xl"
+        src={src}
+        poster={poster}
+        autoPlay
+        loop
+        muted
+        playsInline
+        aria-label={label}
+      />
+    </div>
+  );
+}
+
+const SUPPORTED_PLATFORMS = [
+  { key: 'youtube', bg: 'bg-red-600', rounded: 'rounded-xl', Icon: SiYoutube, label: 'YouTube' },
+  { key: 'linkedin', bg: 'bg-blue-600', rounded: 'rounded-xl', Icon: SiLinkedin, label: 'LinkedIn' },
+  { key: 'instagram', bg: 'bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-500', rounded: 'rounded-xl', Icon: SiInstagram, label: 'Instagram' },
+];
 
 export default function MainContext() {
   return (
@@ -129,11 +163,7 @@ export default function MainContext() {
           </div>
           {/* Right Column: Image Reference */}
           <div className="relative">
-            <img
-              alt="Cross-posting dashboard visualization"
-              className="w-full h-auto rounded-2xl shadow-sm"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYqQZBJXKwoPhmzkRusCdpwZjwiyxVGVNBMUqkSCwUbJxrAXQFGcLACI--2FxJVlVdoe3mEc9cqTpTTr2n8Cu_FyBryDFrJALsLW09uMrswZnHhF8uv4STPxgjjJxKjkh9m7DmnQab8StBbq2VSqEtRBLeEKwzzHMQxfKa2eGLI5Jl7uRZslzXU8ZflvnPwVQ4dpgW6-lfz5eTregmgBYytb3XArDF2Jx1DdRxUBIGQd3zmDwjqr1McgmUtAtBZXN1hUQ"
-            />
+            <CrossPostAnimation />
           </div>
         </div>
       </section>
@@ -172,12 +202,11 @@ export default function MainContext() {
               </a>
             </div>
           </div>
-          {/* Right Column: Image */}
+          {/* Right Column: Video */}
           <div className="relative">
-            <img
-              alt="Content management dashboard visualization"
-              className="w-full h-auto rounded-2xl shadow-sm"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCusttm7QbSkNiUioQ5E4gzThI-vFXb4PYPbYCSjlAldDKKi8tbfUb7WTQ2jOKoK6l9b7bDT9M87fEbP5R8dx3-S1D1uqb0sNiES1ewVjA3t3lVP3s95SCo4oITr4Oz6hDYoXM8giGvOeSJhRvecwH18WOd-pY_ZvASFx0y_raP-tTdydZbZdTrbzY3J97TzsEkUtj-TyrFbHwJqaKFGLPa_PfL0UiOFWYTnqDhTo2IlK1iVs5Ygdu_nDwe2_-duEtqxDo"
+            <VideoCard
+              src="src/assets/contentManage.mp4"
+              label="Content management dashboard demo"
             />
           </div>
         </div>
@@ -186,12 +215,11 @@ export default function MainContext() {
       {/* SCHEDULING SECTION */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" id="scheduling-section">
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          {/* Left Column: Image */}
+          {/* Left Column: Video */}
           <div className="relative order-2 md:order-1">
-            <img
-              alt="Scheduling dashboard visualization"
-              className="w-full h-auto rounded-2xl shadow-sm"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-DC7KpMBwXkZTMZSR_6D0110lBr8ZXwrX6LwUVKeUMVnLPU8L8BbT02gIyI23LCAXLBL67jxj1oSN1o8YqJGROL7PSAEkgcAEGuvd90mwXdRqDor-xIAmtTLfvxVbd29A3iXyJPc4u551s-2AlG-bDTA3qHJDWn2xIRk1DNrq6oKx2ACUG_5WuQppwUBcO0fmWN3ua2u6bhWuwFPeme1wRZrfX672ThxwU82_gQHBnNDn4mPVklvim9Kce1YhK0zhx1M"
+            <VideoCard
+              src="src/assets/schedulePost.webm"
+              label="Scheduling dashboard demo"
             />
           </div>
           {/* Right Column: Content */}
@@ -234,77 +262,15 @@ export default function MainContext() {
           <h2 className="text-4xl md:text-5xl font-extrabold text-navy tracking-tight leading-tight mb-4">Supported Platforms</h2>
           <p className="text-lg text-gray-500">These are all the platforms you can post to from within post bridge.</p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6" id="platforms-grid">
-          {/* Twitter/X */}
-          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center gap-4 hover:shadow-md transition-shadow">
-            <div className="w-14 h-14 rounded-xl bg-black text-white flex items-center justify-center">
-              <SiX className="w-8 h-8" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-3xl mx-auto" id="platforms-grid">
+          {SUPPORTED_PLATFORMS.map(({ key, bg, rounded, Icon, label }) => (
+            <div key={key} className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center gap-4 hover:shadow-md transition-shadow">
+              <div className={`w-14 h-14 ${rounded} ${bg} text-white flex items-center justify-center`}>
+                <Icon className="w-8 h-8" />
+              </div>
+              <span className="font-medium text-gray-700">{label}</span>
             </div>
-            <span className="font-medium text-gray-700">Twitter/X</span>
-          </div>
-          {/* Instagram */}
-          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center gap-4 hover:shadow-md transition-shadow">
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-500 text-white flex items-center justify-center">
-              <SiInstagram className="w-8 h-8" />
-            </div>
-            <span className="font-medium text-gray-700">Instagram</span>
-          </div>
-          {/* LinkedIn */}
-          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center gap-4 hover:shadow-md transition-shadow">
-            <div className="w-14 h-14 rounded-xl bg-blue-600 text-white flex items-center justify-center">
-              <SiLinkedin className="w-8 h-8" />
-            </div>
-            <span className="font-medium text-gray-700">LinkedIn</span>
-          </div>
-          {/* Facebook */}
-          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center gap-4 hover:shadow-md transition-shadow">
-            <div className="w-14 h-14 rounded-full bg-blue-500 text-white flex items-center justify-center">
-              <SiFacebook className="w-8 h-8" />
-            </div>
-            <span className="font-medium text-gray-700">Facebook</span>
-          </div>
-          {/* TikTok */}
-          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center gap-4 hover:shadow-md transition-shadow">
-            <div className="w-14 h-14 rounded-xl bg-black text-white flex items-center justify-center">
-              <SiTiktok className="w-8 h-8" />
-            </div>
-            <span className="font-medium text-gray-700">TikTok</span>
-          </div>
-          {/* YouTube */}
-          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center gap-4 hover:shadow-md transition-shadow">
-            <div className="w-14 h-14 rounded-xl bg-red-600 text-white flex items-center justify-center">
-              <SiYoutube className="w-8 h-8" />
-            </div>
-            <span className="font-medium text-gray-700">YouTube</span>
-          </div>
-          {/* Bluesky */}
-          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center gap-4 hover:shadow-md transition-shadow">
-            <div className="w-14 h-14 rounded-xl bg-blue-400 text-white flex items-center justify-center">
-              <SiBluesky className="w-8 h-8" />
-            </div>
-            <span className="font-medium text-gray-700">Bluesky</span>
-          </div>
-          {/* Threads */}
-          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center gap-4 hover:shadow-md transition-shadow">
-            <div className="w-14 h-14 rounded-xl bg-white border border-gray-200 text-black flex items-center justify-center">
-              <SiThreads className="w-8 h-8" />
-            </div>
-            <span className="font-medium text-gray-700">Threads</span>
-          </div>
-          {/* Pinterest */}
-          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center gap-4 hover:shadow-md transition-shadow">
-            <div className="w-14 h-14 rounded-full bg-red-500 text-white flex items-center justify-center">
-              <SiPinterest className="w-8 h-8" />
-            </div>
-            <span className="font-medium text-gray-700">Pinterest</span>
-          </div>
-          {/* Google Business */}
-          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center gap-4 hover:shadow-md transition-shadow">
-            <div className="w-14 h-14 rounded-xl bg-blue-100 border border-blue-200 text-blue-600 flex items-center justify-center">
-              <SiGoogle className="w-8 h-8" />
-            </div>
-            <span className="font-medium text-gray-700">Google Business</span>
-          </div>
+          ))}
           {/* More to come */}
           <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center gap-4 hover:shadow-md transition-shadow">
             <div className="w-14 h-14 rounded-xl bg-gray-50 text-gray-400 flex items-center justify-center gap-1">

@@ -145,7 +145,7 @@ export default function UploadPost() {
         const mapped = (data.accounts || []).map((a) => ({
           id: a._id,
           platform: a.platform,
-          name: a.platformUsername || `${a.platform} account`,
+          name: a.accountLabel || a.platformUsername || `${a.platform} account`,
           avatar: a.platformAvatarUrl || undefined,
         }));
         setAccounts(mapped);
@@ -161,6 +161,8 @@ export default function UploadPost() {
   /* ---------------- Selected accounts ---------------- */
   const [selectedAccountIds, setSelectedAccountIds] = useState([]);
   const [accountSearch, setAccountSearch] = useState('');
+  const accountSearchRef = useRef(null);
+  const youtubeTitleRef = useRef(null);
 
   // Accounts eligible for this format at all (e.g. LinkedIn only, for text)
   const eligibleAccounts = useMemo(
@@ -318,7 +320,25 @@ export default function UploadPost() {
     if (!caption.trim() && format === 'text') next.caption = 'Write something for your text post.';
     if (needsYoutubeFields && !youtubeTitle.trim()) next.youtubeTitle = 'YouTube requires a title.';
     if (scheduleEnabled && (!scheduleDate || !scheduleTime)) next.schedule = 'Pick a date and time, or turn off scheduling to post now.';
+
     setErrors(next);
+
+    // Open collapsed sections and move the cursor to the first invalid field.
+    if (next.accounts) {
+      requestAnimationFrame(() => {
+        accountSearchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        accountSearchRef.current?.focus();
+      });
+    } else if (next.youtubeTitle) {
+      setShowYoutubePanel(true);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          youtubeTitleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          youtubeTitleRef.current?.focus();
+        }, 0);
+      });
+    }
+
     return Object.keys(next).length === 0;
   };
 
@@ -437,6 +457,7 @@ export default function UploadPost() {
             <div className="relative mb-4">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
+                ref={accountSearchRef}
                 type="text"
                 value={accountSearch}
                 onChange={(e) => setAccountSearch(e.target.value)}
@@ -727,6 +748,7 @@ export default function UploadPost() {
                     Video title <span className="text-rose-500">*</span>
                   </label>
                   <input
+                    ref={youtubeTitleRef}
                     type="text"
                     value={youtubeTitle}
                     onChange={(e) => setYoutubeTitle(e.target.value.slice(0, 100))}

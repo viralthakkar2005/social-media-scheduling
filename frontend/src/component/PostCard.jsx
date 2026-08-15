@@ -127,18 +127,41 @@ export default function PostCard({ post, onDeleted }) {
 
       {/* Footer: platforms + status + actions */}
       <div className="mt-auto p-4 pt-3 flex items-center justify-between border-t border-slate-100">
-        <div className="flex -space-x-1.5">
-          {platforms.map((p) => {
+        <div className="flex items-center -space-x-1.5">
+          {(post.targets || []).map((target, index) => {
+            const p = target.platform;
             const meta = PLATFORM_META[p];
             if (!meta) return null;
+
+            const accountName =
+              target.accountName ||
+              target.platformUsername ||
+              `${meta.label} account`;
+            const avatar = target.accountAvatarUrl;
+
             return (
               <span
-                key={p}
-                title={p}
-                className="w-6 h-6 rounded-full ring-2 ring-white text-white flex items-center justify-center"
-                style={{ background: meta.bg }}
+                key={`${String(target.connectedAccountId || p)}-${index}`}
+                title={`${accountName} · ${meta.label}`}
+                className="relative w-7 h-7 rounded-full ring-2 ring-white bg-slate-100 flex items-center justify-center overflow-visible"
               >
-                <meta.Icon className="w-3 h-3" />
+                {avatar ? (
+                  <img
+                    src={avatar}
+                    alt={accountName}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="w-full h-full rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center">
+                    {accountName.slice(0, 1).toUpperCase()}
+                  </span>
+                )}
+                <span
+                  className="absolute -right-1 -bottom-1 w-3.5 h-3.5 rounded-full ring-1 ring-white text-white flex items-center justify-center"
+                  style={{ background: meta.bg }}
+                >
+                  <meta.Icon className="w-2 h-2" />
+                </span>
               </span>
             );
           })}

@@ -108,9 +108,42 @@ exports.createPost = async (req, res) => {
 // GET /api/posts  (protected)
 exports.listPosts = async (req, res) => {
   try {
-    const posts = await Post.find({ userId: req.userId }).sort({ createdAt: -1 });
-    res.status(200).json({ posts });
+    const posts = await Post.find({ userId: req.userId }).sort({ createdAt: -1 }).lean();
+
+    // Enrich each target with safe connected-account display data.
+    // Tokens are never returned to the frontend.
+    const accountIds = posts.flatMap((post) =>
+      (post.targets || []).map((target) => target.connectedAccountId)
+    );
+
+    const accounts = await ConnectedAccount.find({
+      _id: { $in: accountIds },
+      userId: req.userId,
+    })
+      .select('_id platform accountLabel platformUsername platformAvatarUrl')
+      .lean();
+
+    const accountMap = new Map(accounts.map((account) => [String(account._id), account]));
+
+    const enrichedPosts = posts.map((post) => ({
+      ...post,
+      targets: (post.targets || []).map((target) => {
+        const account = accountMap.get(String(target.connectedAccountId));
+        return {
+          ...target,
+          accountName:
+            account?.accountLabel ||
+            account?.platformUsername ||
+            `${account?.platform || target.platform} account`,
+          accountAvatarUrl: account?.platformAvatarUrl || null,
+          platformUsername: account?.platformUsername || null,
+        };
+      }),
+    }));
+
+    res.status(200).json({ posts: enrichedPosts });
   } catch (err) {
+    console.error('listPosts error:', err.message);
     res.status(500).json({ message: 'Failed to load posts' });
   }
 };
