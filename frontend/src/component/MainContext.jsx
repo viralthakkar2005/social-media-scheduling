@@ -274,8 +274,6 @@ export default function MainContext() {
         </div>
       </section>
 
-      {/* Floating Chat Widget Button */}
-      <div className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center cursor-pointer border border-gray-100 hover:shadow-xl transition-shadow z-50 bg-blue-500"></div>
-    </main>
+ </main>
   );
 }
